@@ -7,7 +7,7 @@ interface TextOptions {
   message: string
   initialValue?: string
   placeholder?: string
-  verify?: (output: string) => string | undefined
+  verify?: (output: string) => string | undefined | void
 }
 
 export function text(options: TextOptions): Promise<string> {
@@ -35,6 +35,11 @@ export function text(options: TextOptions): Promise<string> {
 
     if (splitedTitle.length + 2 > stdout.rows) {
       stdout.write(`You need at least ${splitedTitle.length + 2} rows to continue\n`)
+      exit(1)
+    }
+
+    if (stdout.columns <= 8) {
+      stdout.write('You need at least 9 columns to continue\n')
       exit(1)
     }
 
@@ -134,7 +139,7 @@ export function text(options: TextOptions): Promise<string> {
         stdout.write('\n')
         process.exit(0)
       } else if (isEnter) {
-        if (options.verify && typeof options.verify(userInput) === 'string') return updateConsole('err', options.verify(userInput))
+        if (options.verify && typeof options.verify(userInput) === 'string') return updateConsole('err', options.verify(userInput)!)
 
         updateConsole('enter')
         moveCursor(stdout, 0, 1)
