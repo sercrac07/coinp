@@ -9,3 +9,11 @@ Collect user input using the text function, enabling you to display default valu
 ```javascript
 const name = await text({ message: "What's your name?" })
 ```
+
+## Number
+
+With the number function, gather user input in numerical format, supporting both decimals and whole numbers.
+
+```javascript
+const age = await number({ message: "What's your age?" })
+```
