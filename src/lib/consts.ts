@@ -24,7 +24,9 @@ export const Symbols = {
   BottomLeftCorner: '└',
   BottomRightCorner: '┘',
 
-  Arrow: '▶',
+  RightArrow: '▶',
+  TopArrow: '▲',
+  DownArrow: '▼',
 
   Unanswered: '◇',
   Answered: '◆',
