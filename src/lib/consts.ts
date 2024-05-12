@@ -32,6 +32,8 @@ export const Symbols = {
   Unselected: '□',
   Selected: '■',
 
+  Load: ['◓', '◑', '◒', '◐'] as const,
+
   Unanswered: '◇',
   Answered: '◆',
   Error: '▲',
