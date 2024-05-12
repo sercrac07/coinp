@@ -46,7 +46,7 @@ export function loader(...step: string[]): Loader {
     clearScreenDown(stdout)
 
     splitedSteps.forEach((split, index) => {
-      stdout.write(`${split.map((splt, i) => `${Colors.FgBlue}${index === 0 && i === 0 ? Symbols.Load[currentLoad] : index + 1 === step.length && i + 1 === split.length ? Symbols.BottomLeftCorner : Symbols.LineVertical} ${Colors.Reset}${index === updateText.length ? Colors.Bright : Colors.Dim}${splt.trim()}${Colors.Reset}`).join('\n')}${index === updateText.length ? Colors.Bright + dots + Colors.Reset : ''}\n`)
+      stdout.write(`${Unicode.HideCursor + split.map((splt, i) => `${Colors.FgBlue}${index === 0 && i === 0 ? Symbols.Load[currentLoad] : index + 1 === step.length && i + 1 === split.length ? Symbols.BottomLeftCorner : Symbols.LineVertical} ${Colors.Reset}${index === updateText.length ? Colors.Bright : Colors.Dim}${splt.trim()}${Colors.Reset}`).join('\n')}${index === updateText.length ? Colors.Bright + dots + Colors.Reset : ''}\n`)
     })
   }
 
