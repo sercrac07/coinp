@@ -62,3 +62,13 @@ downloadLoader.next('Data downloaded successfully')
 // Some stuff...
 downloadLoader.end('Ended working with data')
 ```
+
+## Extra
+
+Thanks to additional functions like intro, outro, and info, you can display enhanced messages with extra information, each used in different parts of the application.
+
+```javascript
+intro('Hello world')
+info('This is an info message')
+outro('Bye world')
+```
