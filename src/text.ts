@@ -50,7 +50,10 @@ export function text(options: TextOptions): Promise<string> {
       toShow = splitedPlaceholder
       is = 'placeholder'
     } else {
-      toShow = splitedUserInput
+      toShow = splitedUserInput.slice((stdout.rows - splitedTitle.length - 1) * -1)
+      if (splitedUserInput.length > stdout.rows - splitedTitle.length - 1) {
+        toShow[0] = toShow[0].replace(/^.{3}/g, '...')
+      }
       is = 'input'
     }
 
@@ -58,7 +61,6 @@ export function text(options: TextOptions): Promise<string> {
       splitedTitle
         .map((title, index) => {
           if (index === 0) return `${Colors.FgBlue + Symbols.Unanswered + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
-          else if (index === splitedTitle.length - 1) return `${Colors.FgBlue + Symbols.LineVertical + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
           else return `${Colors.FgBlue + Symbols.LineVertical + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
         })
         .join('') +
@@ -112,7 +114,6 @@ export function text(options: TextOptions): Promise<string> {
           splitedTitle
             .map((title, index) => {
               if (index === 0) return `${col + sym + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
-              else if (index === splitedTitle.length - 1) return `${col + Symbols.LineVertical + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
               else return `${col + Symbols.LineVertical + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
             })
             .join('') + '\n'
