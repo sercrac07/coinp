@@ -4,6 +4,7 @@ export const Unicode = {
 
   Enter: '\r',
   Backspace: '\b',
+  Spacebar: '\u0020',
 
   UpArrow: '\x1B[A',
   DownArrow: '\x1B[B',
@@ -27,6 +28,9 @@ export const Symbols = {
   RightArrow: '▶',
   TopArrow: '▲',
   DownArrow: '▼',
+
+  Unselected: '□',
+  Selected: '■',
 
   Unanswered: '◇',
   Answered: '◆',
