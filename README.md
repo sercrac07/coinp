@@ -32,3 +32,18 @@ const lang = await list({
   ],
 })
 ```
+
+## Checkbox
+
+By using the `checkbox` function, users can select multiple options from a list of choices.
+
+```javascript
+const food = await checkbox({
+  message: "What's your favorite food?",
+  choices: [
+    { label: 'Pizza', value: 'pizza' },
+    { label: 'Burger', value: 'burger' },
+    { label: 'Rice', value: 'rice' },
+  ],
+})
+```
