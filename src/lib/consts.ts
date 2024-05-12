@@ -18,6 +18,7 @@ export const Unicode = {
 export const Symbols = {
   LineHorizontal: '─',
   LineVertical: '│',
+  MiddleLine: '├',
 
   TopLeftCorner: '┌',
   TopRightCorner: '┐',
