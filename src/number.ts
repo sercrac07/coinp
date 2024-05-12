@@ -13,6 +13,13 @@ interface NumberOptions {
   verify?: (output: number) => string | undefined | void
 }
 
+/**
+ * The `number` function facilitates the collection of user input in numerical format, supporting both decimal and whole numbers.
+ *
+ * ```javascript
+ * const age = await number({ message: "What's your age?" })
+ * ```
+ */
 export function number(options: NumberOptions): Promise<number> {
   return new Promise<number>(resolve => {
     stdin.resume()

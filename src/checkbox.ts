@@ -3,38 +3,39 @@ import { clearScreenDown, moveCursor, cursorTo } from 'node:readline'
 
 import { Colors, Symbols, Unicode } from './lib/consts'
 
-interface ListOptions<T extends string> {
+interface CheckboxOptions<T extends string> {
   message: string
-  choices: ListChoice<T>[]
+  choices: CheckboxChoice<T>[]
   initialValue?: NoInfer<T>
 }
 
-interface ListChoice<T extends string> {
+interface CheckboxChoice<T extends string> {
   label: string
   value: T
 }
 
 /**
- * The `list` function empowers users to select a single option from a predefined list of choices.
+ * The `checkbox` function provides users with the capability to select multiple options simultaneously from a predefined list of choices.
  *
  * ```javascript
- * const lang = await list({
- *   message: "What's your favorite language?",
+ * const food = await checkbox({
+ *   message: "What's your favorite food?",
  *   choices: [
- *     { label: 'HTML', value: 'html' },
- *     { label: 'CSS', value: 'css' },
- *     { label: 'JavaScript', value: 'js' },
+ *     { label: 'Pizza', value: 'pizza' },
+ *     { label: 'Burger', value: 'burger' },
+ *     { label: 'Rice', value: 'rice' },
  *   ],
  * })
  * ```
  */
-export function list<T extends string>(options: ListOptions<T>): Promise<T> {
-  return new Promise<T>(resolve => {
+export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise<T[]> {
+  return new Promise<T[]>(resolve => {
     stdin.resume()
     stdin.setEncoding('utf-8')
     stdin.setRawMode(true)
 
     let userCurrent = options.initialValue && options.choices.findIndex(choice => choice.value === options.initialValue) !== -1 ? options.choices.findIndex(choice => choice.value === options.initialValue) : 0
+    const userSelection: T[] = []
     const regex = new RegExp(`.{1,${stdout.columns - 2}}`, 'g')
     const choiceRegex = new RegExp(`.{1,${stdout.columns - 4}}`, 'g')
 
@@ -51,8 +52,8 @@ export function list<T extends string>(options: ListOptions<T>): Promise<T> {
       else showing = [userCurrent, userCurrent + dif]
     }
 
-    const showOptions = options.choices.map(choice => choice.label).slice(showing[0], showing[1])
-    const linesOptions = showOptions.map(choice => choice.match(choiceRegex)!)
+    const showOptions = options.choices.map(choice => choice).slice(showing[0], showing[1])
+    const linesOptions = showOptions.map(choice => ({ content: choice.label.match(choiceRegex)!, selected: userSelection.includes(choice.value) }))
 
     if (splitedTitle.length + 1 > stdout.rows) {
       stdout.write(`You need at least ${splitedTitle.length + 2} rows to continue\n`)
@@ -75,8 +76,8 @@ export function list<T extends string>(options: ListOptions<T>): Promise<T> {
         '\n' +
         linesOptions
           .map((line, index) => {
-            if (line.length !== 1) return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${line[0].slice(0, -3)}...`
-            return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${line[0]}`
+            if (line.content.length !== 1) return `${Colors.FgBlue + Symbols.LineVertical} ${line.selected ? Symbols.Selected : Symbols.Unselected}${index + showing[0] === userCurrent ? '' : Colors.Reset} ${line.content[0].slice(0, -3)}...`
+            return `${Colors.FgBlue + Symbols.LineVertical} ${line.selected ? Symbols.Selected : Symbols.Unselected}${index + showing[0] === userCurrent ? '' : Colors.Reset} ${line.content[0]}`
           })
           .join('\n') +
         `\n${Colors.FgBlue + Symbols.BottomLeftCorner} ${options.choices.length > showOptions.length && showing[0] !== 0 ? `${Symbols.TopArrow} ` : ''}${options.choices.length > showOptions.length && showing[1] !== options.choices.length ? `${Symbols.DownArrow} ` : ''}${Colors.Reset}`
@@ -88,6 +89,7 @@ export function list<T extends string>(options: ListOptions<T>): Promise<T> {
       const isCancel = key === Unicode.ControlC || key === Unicode.Esc
       const isDel = key === Unicode.Backspace
       const isEnter = key === Unicode.Enter
+      const isSpace = key === Unicode.Spacebar
       const isUpArrow = key === Unicode.UpArrow
       const isDownArrow = key === Unicode.DownArrow
       const isOtherArrow = key === Unicode.RightArrow || key === Unicode.LeftArrow
@@ -109,13 +111,16 @@ export function list<T extends string>(options: ListOptions<T>): Promise<T> {
               })
               .join('') +
               '\n' +
-              `${col + Symbols.LineVertical} ${options.choices[userCurrent].label}\n${col + Symbols.LineVertical + Colors.Reset}`
+              `${col + Symbols.LineVertical} ${options.choices
+                .filter(choice => userSelection.includes(choice.value))
+                .map(choice => choice.label)
+                .join(', ')}\n${col + Symbols.LineVertical + Colors.Reset}`
           )
         }
 
-        const toShow = options.choices.map(choice => choice.label).slice(showing[0], showing[1])
+        const toShow = options.choices.map(choice => choice).slice(showing[0], showing[1])
 
-        let toShowLines = toShow.map(show => show.match(choiceRegex)!)
+        let toShowLines = toShow.map(show => ({ content: show.label.match(choiceRegex)!, selected: userSelection.includes(show.value) }))
 
         stdout.write(
           splitedTitle
@@ -128,8 +133,8 @@ export function list<T extends string>(options: ListOptions<T>): Promise<T> {
             '\n' +
             toShowLines
               .map((line, index) => {
-                if (line.length !== 1) return `${col + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${line[0].slice(0, -3)}...`
-                return `${col + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${line[0]}`
+                if (line.content.length !== 1) return `${col + Symbols.LineVertical} ${line.selected ? Symbols.Selected : Symbols.Unselected}${index + showing[0] === userCurrent ? '' : Colors.Reset} ${line.content[0].slice(0, -3)}...`
+                return `${col + Symbols.LineVertical} ${line.selected ? Symbols.Selected : Symbols.Unselected}${index + showing[0] === userCurrent ? '' : Colors.Reset} ${line.content[0]}`
               })
               .join('\n') +
             `\n${col + Symbols.BottomLeftCorner} ${options.choices.length > toShow.length && showing[0] !== 0 ? `${Symbols.TopArrow} ` : ''}${options.choices.length > toShow.length && showing[1] !== options.choices.length ? `${Symbols.DownArrow} ` : ''}${type === 'cancel' ? 'Operation cancelled' : ''}${Colors.Reset}`
@@ -143,7 +148,7 @@ export function list<T extends string>(options: ListOptions<T>): Promise<T> {
       } else if (isEnter) {
         updateConsole('enter')
         stdout.write('\n' + Unicode.ShowCursor)
-        resolve(options.choices[userCurrent].value)
+        resolve(userSelection)
         stdin.removeListener('data', listener)
         stdin.pause()
       } else if (isUpArrow) {
@@ -159,6 +164,10 @@ export function list<T extends string>(options: ListOptions<T>): Promise<T> {
           showing[0]++
           showing[1]++
         }
+        updateConsole('arrow')
+      } else if (isSpace) {
+        if (userSelection.includes(options.choices[userCurrent].value)) userSelection.splice(userSelection.indexOf(options.choices[userCurrent].value), 1)
+        else userSelection.push(options.choices[userCurrent].value)
         updateConsole('arrow')
       }
     }

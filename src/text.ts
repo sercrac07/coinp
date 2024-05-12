@@ -10,6 +10,13 @@ interface TextOptions {
   verify?: (output: string) => string | undefined | void
 }
 
+/**
+ * The `text` function enables the retrieval of user input in text format. This feature provides the ability to display default values and perform real-time validation on the input provided by the user.
+ *
+ * ```javascript
+ * const name = await text({ message: "What's your name?" })
+ * ```
+ */
 export function text(options: TextOptions): Promise<string> {
   return new Promise<string>(resolve => {
     stdin.resume()
