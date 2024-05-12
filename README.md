@@ -47,3 +47,18 @@ const food = await checkbox({
   ],
 })
 ```
+
+## Loader
+
+Thanks to the `loader` function, you can create a loading icon, allowing for customization of the loading message. This ensures users are informed at all times about ongoing processes.
+
+```javascript
+const downloadLoader = loader('Fetching data', 'Downloading data', 'Executing data')
+downloadLoader.start()
+// Some stuff...
+downloadLoader.next('Data obtained correctly')
+// Some stuff...
+downloadLoader.next('Data downloaded successfully')
+// Some stuff...
+downloadLoader.end('Ended working with data')
+```
