@@ -18,12 +18,12 @@ With the `number` function, gather user input in numerical format, supporting bo
 const age = await number({ message: "What's your age?" })
 ```
 
-## List
+## Select
 
-Utilize the `list` function to enable users to select an option from a predefined list of choices.
+Utilize the `select` function to enable users to select an option from a predefined list of choices.
 
 ```javascript
-const lang = await list({
+const lang = await select({
   message: "What's your favorite language?",
   choices: [
     { label: 'HTML', value: 'html' },

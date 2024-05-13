@@ -3,13 +3,13 @@ import { clearScreenDown, moveCursor, cursorTo } from 'node:readline'
 
 import { Colors, Symbols, Unicode } from './lib/consts'
 
-interface ListOptions<T extends string> {
+interface SelectOptions<T extends string> {
   message: string
-  choices: ListChoice<T>[]
+  choices: SelectChoice<T>[]
   initialValue?: NoInfer<T>
 }
 
-interface ListChoice<T extends string> {
+interface SelectChoice<T extends string> {
   label: string
   value: T
 }
@@ -28,7 +28,7 @@ interface ListChoice<T extends string> {
  * })
  * ```
  */
-export function list<T extends string>(options: ListOptions<T>): Promise<T> {
+export function select<T extends string>(options: SelectOptions<T>): Promise<T> {
   return new Promise<T>(resolve => {
     stdin.resume()
     stdin.setEncoding('utf-8')
