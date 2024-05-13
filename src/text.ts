@@ -125,14 +125,18 @@ export function text(options: TextOptions): Promise<string> {
             })
             .join('') + '\n'
         )
-        if (type === 'enter') stdout.write(showContent.map(input => `${col + Symbols.LineVertical + Colors.Reset} ${Colors.Dim + input + Colors.Reset}`).join(''))
-        else if (type === 'cancel') stdout.write(showContent.map(input => `${col + Symbols.LineVertical + Colors.Reset} ${Colors.Dim + col + input + Colors.Reset}`).join(''))
+        if (type === 'enter') stdout.write(showContent.map(input => `${col + Symbols.LineVertical + Colors.Reset} ${Colors.FgGreen + input + Colors.Reset}`).join(''))
+        else if (type === 'cancel') stdout.write(showContent.map(input => `${col + Symbols.LineVertical + Colors.Reset} ${col + input + Colors.Reset}`).join(''))
         else stdout.write(toShow.map(input => `${col + Symbols.LineVertical + Colors.Reset} ${is === 'placeholder' ? Colors.Dim : ''}${input + Colors.Reset}`).join(''))
 
         if (type === 'err') {
-          const errSplited = err!.match(regex)![0].slice(0, -3) + '...'
+          const errSplited = err!.match(regex)!
+          let showErr = ''
 
-          stdout.write(`\n${col + Symbols.BottomLeftCorner} ${errSplited + Colors.Reset}`)
+          if (errSplited.length > 1) showErr = errSplited[0].slice(0, -3) + '...'
+          else showErr = errSplited[0]
+
+          stdout.write(`\n${col + Symbols.BottomLeftCorner} ${showErr + Colors.Reset}`)
         } else stdout.write(`\n${col}${type === 'enter' ? Symbols.LineVertical : Symbols.BottomLeftCorner} ${type === 'cancel' ? 'Operation cancelled' : ''}${Colors.Reset}`)
 
         if (is === 'input' || type === 'cancel') moveCursor(stdout, 0, -1)

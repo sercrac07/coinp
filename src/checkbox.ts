@@ -6,7 +6,8 @@ import { Colors, Symbols, Unicode } from './lib/consts'
 interface CheckboxOptions<T extends string> {
   message: string
   choices: CheckboxChoice<T>[]
-  initialValue?: NoInfer<T>
+  cursorAt?: NoInfer<T>
+  initialValues?: NoInfer<T>[]
 }
 
 interface CheckboxChoice<T extends string> {
@@ -34,10 +35,17 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
     stdin.setEncoding('utf-8')
     stdin.setRawMode(true)
 
-    let userCurrent = options.initialValue && options.choices.findIndex(choice => choice.value === options.initialValue) !== -1 ? options.choices.findIndex(choice => choice.value === options.initialValue) : 0
+    let userCurrent = options.cursorAt && options.choices.findIndex(choice => choice.value === options.cursorAt) !== -1 ? options.choices.findIndex(choice => choice.value === options.cursorAt) : 0
     const userSelection: T[] = []
     const regex = new RegExp(`.{1,${stdout.columns - 2}}`, 'g')
     const choiceRegex = new RegExp(`.{1,${stdout.columns - 4}}`, 'g')
+
+    if (options.initialValues) {
+      options.initialValues.forEach(value => {
+        if (userSelection.includes(value)) return
+        userSelection.push(value)
+      })
+    }
 
     const splitedTitle = options.message.match(regex)!
     const showLines = options.choices.map(choice => choice.label).slice((stdout.rows - splitedTitle.length - 1) * -1)
@@ -76,8 +84,8 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
         '\n' +
         linesOptions
           .map((line, index) => {
-            if (line.content.length !== 1) return `${Colors.FgBlue + Symbols.LineVertical} ${line.selected ? Symbols.Selected : Symbols.Unselected}${index + showing[0] === userCurrent ? '' : Colors.Reset} ${line.content[0].slice(0, -3)}...`
-            return `${Colors.FgBlue + Symbols.LineVertical} ${line.selected ? Symbols.Selected : Symbols.Unselected}${index + showing[0] === userCurrent ? '' : Colors.Reset} ${line.content[0]}`
+            if (line.content.length !== 1) return `${Colors.FgBlue + Symbols.LineVertical}${index + showing[0] === userCurrent ? '' : Colors.Reset} ${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0].slice(0, -3)}...${Colors.Reset}`
+            return `${Colors.FgBlue + Symbols.LineVertical}${index + showing[0] === userCurrent ? '' : Colors.Reset} ${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0]}${Colors.Reset}`
           })
           .join('\n') +
         `\n${Colors.FgBlue + Symbols.BottomLeftCorner} ${options.choices.length > showOptions.length && showing[0] !== 0 ? `${Symbols.TopArrow} ` : ''}${options.choices.length > showOptions.length && showing[1] !== options.choices.length ? `${Symbols.DownArrow} ` : ''}${Colors.Reset}`
@@ -133,8 +141,8 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
             '\n' +
             toShowLines
               .map((line, index) => {
-                if (line.content.length !== 1) return `${col + Symbols.LineVertical} ${line.selected ? Symbols.Selected : Symbols.Unselected}${index + showing[0] === userCurrent ? '' : Colors.Reset} ${line.content[0].slice(0, -3)}...`
-                return `${col + Symbols.LineVertical} ${line.selected ? Symbols.Selected : Symbols.Unselected}${index + showing[0] === userCurrent ? '' : Colors.Reset} ${line.content[0]}`
+                if (line.content.length !== 1) return `${col + Symbols.LineVertical}${index + showing[0] === userCurrent ? '' : Colors.Reset} ${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0].slice(0, -3)}...${Colors.Reset}`
+                return `${col + Symbols.LineVertical}${index + showing[0] === userCurrent ? '' : Colors.Reset} ${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0]}${Colors.Reset}`
               })
               .join('\n') +
             `\n${col + Symbols.BottomLeftCorner} ${options.choices.length > toShow.length && showing[0] !== 0 ? `${Symbols.TopArrow} ` : ''}${options.choices.length > toShow.length && showing[1] !== options.choices.length ? `${Symbols.DownArrow} ` : ''}${type === 'cancel' ? 'Operation cancelled' : ''}${Colors.Reset}`

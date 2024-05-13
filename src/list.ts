@@ -75,8 +75,8 @@ export function list<T extends string>(options: ListOptions<T>): Promise<T> {
         '\n' +
         linesOptions
           .map((line, index) => {
-            if (line.length !== 1) return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${line[0].slice(0, -3)}...`
-            return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${line[0]}`
+            if (line.length !== 1) return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line[0].slice(0, -3)}...${Colors.Reset}`
+            return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line[0] + Colors.Reset}`
           })
           .join('\n') +
         `\n${Colors.FgBlue + Symbols.BottomLeftCorner} ${options.choices.length > showOptions.length && showing[0] !== 0 ? `${Symbols.TopArrow} ` : ''}${options.choices.length > showOptions.length && showing[1] !== options.choices.length ? `${Symbols.DownArrow} ` : ''}${Colors.Reset}`
@@ -128,8 +128,8 @@ export function list<T extends string>(options: ListOptions<T>): Promise<T> {
             '\n' +
             toShowLines
               .map((line, index) => {
-                if (line.length !== 1) return `${col + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${line[0].slice(0, -3)}...`
-                return `${col + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${line[0]}`
+                if (line.length !== 1) return `${col + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line[0].slice(0, -3)}...${Colors.Reset}`
+                return `${col + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line[0] + Colors.Reset}`
               })
               .join('\n') +
             `\n${col + Symbols.BottomLeftCorner} ${options.choices.length > toShow.length && showing[0] !== 0 ? `${Symbols.TopArrow} ` : ''}${options.choices.length > toShow.length && showing[1] !== options.choices.length ? `${Symbols.DownArrow} ` : ''}${type === 'cancel' ? 'Operation cancelled' : ''}${Colors.Reset}`
