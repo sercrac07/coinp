@@ -9,6 +9,7 @@ interface NumberOptions {
   message: string
   initialValue?: number
   placeholder?: number
+  defaultValue?: number
   decimal?: boolean
   verify?: (output: number) => string | undefined | void
 }
@@ -156,6 +157,7 @@ export function number(options: NumberOptions): Promise<number> {
       } else if (isEnter) {
         if (options.verify && typeof options.verify(Number(userInput)) === 'string') return updateConsole('err', options.verify(Number(userInput))!)
 
+        if (userInput.length === 0 && options.defaultValue !== undefined) userInput = options.defaultValue.toString()
         updateConsole('enter')
         moveCursor(stdout, 0, 1)
         stdout.write('\n')

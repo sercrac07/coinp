@@ -7,6 +7,7 @@ interface TextOptions {
   message: string
   initialValue?: string
   placeholder?: string
+  defaultValue?: string
   verify?: (output: string) => string | undefined | void
 }
 
@@ -153,6 +154,7 @@ export function text(options: TextOptions): Promise<string> {
       } else if (isEnter) {
         if (options.verify && typeof options.verify(userInput) === 'string') return updateConsole('err', options.verify(userInput)!)
 
+        if (userInput.length === 0 && options.defaultValue !== undefined) userInput = options.defaultValue
         updateConsole('enter')
         moveCursor(stdout, 0, 1)
         stdout.write('\n')
