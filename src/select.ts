@@ -6,7 +6,7 @@ import { Colors, Symbols, Unicode } from './lib/consts'
 interface SelectOptions<T extends string> {
   message: string
   choices: SelectChoice<T>[]
-  initialValue?: NoInfer<T>
+  cursorAt?: NoInfer<T>
 }
 
 interface SelectChoice<T extends string> {
@@ -34,7 +34,7 @@ export function select<T extends string>(options: SelectOptions<T>): Promise<T> 
     stdin.setEncoding('utf-8')
     stdin.setRawMode(true)
 
-    let userCurrent = options.initialValue && options.choices.findIndex(choice => choice.value === options.initialValue) !== -1 ? options.choices.findIndex(choice => choice.value === options.initialValue) : 0
+    let userCurrent = options.cursorAt && options.choices.findIndex(choice => choice.value === options.cursorAt) !== -1 ? options.choices.findIndex(choice => choice.value === options.cursorAt) : 0
     const regex = new RegExp(`.{1,${stdout.columns - 2}}`, 'g')
     const choiceRegex = new RegExp(`.{1,${stdout.columns - 4}}`, 'g')
 
