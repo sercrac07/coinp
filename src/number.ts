@@ -6,21 +6,25 @@ import { Colors, Symbols, Unicode } from './lib/consts'
 const NUMBERS = '0123456789'
 
 interface NumberOptions {
+  /** Message to display to the user. */
   message: string
+  /** The initial value. */
   initialValue?: number
+  /** An invisible message, displayed only when there is no value. */
   placeholder?: number
+  /** A default value when no value has been entered. */
   defaultValue?: number
+  /** Whether it accepts decimal numbers or not. */
   decimal?: boolean
-  verify?: (output: number) => string | undefined | void
+  /** Whether it accepts negative numbers or not. */
+  negative?: boolean
+  /** A function that allows verifying the value entered by the user before submitting it. */
+  verify?: (value: number) => string | undefined | void
+  /** A function that runs when the operation is canceled. */
+  onCancel?: () => void
 }
 
-/**
- * The `number` function facilitates the collection of user input in numerical format, supporting both decimal and whole numbers.
- *
- * ```javascript
- * const age = await number({ message: "What's your age?" })
- * ```
- */
+/** The `number` function facilitates the collection of user input in numerical format, supporting both decimal and whole numbers. */
 export function number(options: NumberOptions): Promise<number> {
   return new Promise<number>(resolve => {
     stdin.resume()
@@ -32,17 +36,6 @@ export function number(options: NumberOptions): Promise<number> {
 
     const splitedTitle = options.message.match(regex)!
     const splitedUserInput = userInput.match(regex) ?? ['']
-    let splitedPlaceholder: false | string[] = false
-    let linePlaceholder: string[]
-
-    if (options.placeholder) {
-      linePlaceholder = options.placeholder.toString().match(regex)!
-      splitedPlaceholder = linePlaceholder.slice((stdout.rows - splitedTitle.length - 1) * -1)
-
-      if (linePlaceholder.length > stdout.rows - splitedTitle.length - 1) {
-        splitedPlaceholder[0] = splitedPlaceholder[0].replace(/^.{3}/g, '...')
-      }
-    }
 
     if (splitedTitle.length + 2 > stdout.rows) {
       stdout.write(`You need at least ${splitedTitle.length + 2} rows to continue\n`)
@@ -54,33 +47,40 @@ export function number(options: NumberOptions): Promise<number> {
       exit(1)
     }
 
+    let splitedPlaceholder: false | string[] = false
+
+    if (options.placeholder) splitedPlaceholder = options.placeholder.toString().match(regex) ?? ['']
+
     let toShow: string[]
     let is: 'placeholder' | 'input'
 
-    if (splitedPlaceholder && userInput.length === 0) {
-      toShow = splitedPlaceholder
+    if (userInput.length === 0 && options.placeholder) {
+      toShow = splitedPlaceholder as string[]
       is = 'placeholder'
     } else {
-      toShow = splitedUserInput.slice((stdout.rows - splitedTitle.length - 1) * -1)
-      if (splitedUserInput.length > stdout.rows - splitedTitle.length - 1) {
-        toShow[0] = toShow[0].replace(/^.{3}/g, '...')
-      }
+      toShow = splitedUserInput
       is = 'input'
     }
 
+    if (toShow.length > stdout.rows - splitedTitle.length - 1) {
+      toShow = toShow.slice((stdout.rows - splitedTitle.length - 1) * -1)
+      toShow[0] = toShow[0].replace(/^.{3}/g, '...')
+    }
+
     stdout.write(
-      splitedTitle
+      `${splitedTitle
         .map((title, index) => {
           if (index === 0) return `${Colors.FgBlue + Symbols.Unanswered + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
           else return `${Colors.FgBlue + Symbols.LineVertical + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
         })
-        .join('') +
-        '\n' +
-        toShow.map(input => `${Colors.FgBlue + Symbols.LineVertical + Colors.Reset} ${is === 'placeholder' ? Colors.Dim : ''}${input + Colors.Reset}`).join('') +
-        `\n${Colors.FgBlue + Symbols.BottomLeftCorner + Colors.Reset} `
+        .join('\n')}\n`
     )
+
+    stdout.write(`${toShow.map(input => `${Colors.FgBlue + Symbols.LineVertical + Colors.Reset} ${is === 'placeholder' ? Colors.Dim : ''}${input + Colors.Reset}`).join('\n')}\n${Colors.FgBlue + Symbols.BottomLeftCorner + Colors.Reset} `)
+
     if (is === 'input') moveCursor(stdout, 0, -1)
     else moveCursor(stdout, 0, toShow.length * -1)
+
     cursorTo(stdout, splitedUserInput[splitedUserInput.length - 1].length + 2)
 
     const listener = (data: Buffer) => {
@@ -93,67 +93,80 @@ export function number(options: NumberOptions): Promise<number> {
 
       const updateConsole = (type: 'add' | 'del' | 'enter' | 'cancel' | 'err', err?: string) => {
         const splitedContent = userInput.match(regex) ?? ['']
-        const showContent = splitedContent.slice((stdout.rows - splitedTitle.length - 1) * -1)
 
-        if (splitedContent.length > stdout.rows - splitedTitle.length - 1) {
-          showContent[0] = showContent[0].replace(/^.{3}/g, '...')
+        if (userInput.length === 0 && options.placeholder) {
+          toShow = splitedPlaceholder as string[]
+          is = 'placeholder'
+        } else {
+          toShow = splitedContent
+          is = 'input'
         }
 
-        const col = type === 'enter' ? Colors.FgGreen : type === 'cancel' ? Colors.FgRed : type === 'err' ? Colors.FgYellow : Colors.FgBlue
-        const sym = type === 'enter' ? Symbols.Answered : type === 'cancel' || type === 'err' ? Symbols.Error : Symbols.Unanswered
+        if (toShow.length > stdout.rows - splitedTitle.length - 1) {
+          toShow = toShow.slice((stdout.rows - splitedTitle.length - 1) * -1)
+          toShow[0] = toShow[0].replace(/^.{3}/g, '...')
+        }
 
         let extraJump = 0
 
         if (type === 'add') {
-          if (showContent.length !== 1 && showContent[showContent.length - 1].length === 1) extraJump--
+          if (toShow.length !== 1 && toShow[toShow.length - 1].length === 1) extraJump--
         } else if (type === 'del') {
-          if (showContent[showContent.length - 1].length > stdout.columns - 3) extraJump++
+          if (toShow[toShow.length - 1].length > stdout.columns - 3) extraJump++
         }
 
-        if (splitedPlaceholder && userInput.length === 0) {
-          toShow = splitedPlaceholder
-          is = 'placeholder'
-        } else {
-          toShow = showContent
-          is = 'input'
-        }
+        const color = type === 'enter' ? Colors.FgGreen : type === 'cancel' ? Colors.FgRed : type === 'err' ? Colors.FgYellow : Colors.FgBlue
+        const extraColor = type === 'enter' ? Colors.Bright + Colors.FgGreen : type === 'cancel' ? Colors.FgRed : ''
+        const symbol = type === 'enter' ? Symbols.Answered : type === 'cancel' || type === 'err' ? Symbols.Error : Symbols.Unanswered
+        const line = type === 'enter' ? Symbols.LineVertical : Symbols.BottomLeftCorner
 
-        moveCursor(stdout, 0, (showContent.length - 1 + splitedTitle.length + extraJump) * -1)
+        if ((type === 'enter' || type === 'cancel') && is === 'placeholder') toShow = ['']
+
+        moveCursor(stdout, 0, (toShow.length - 1 + extraJump + splitedTitle.length) * -1)
         cursorTo(stdout, 0)
         clearScreenDown(stdout)
-        stdout.write(
-          splitedTitle
-            .map((title, index) => {
-              if (index === 0) return `${col + sym + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
-              else return `${col + Symbols.LineVertical + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
-            })
-            .join('') + '\n'
-        )
-        if (type === 'enter') stdout.write(showContent.map(input => `${col + Symbols.LineVertical + Colors.Reset} ${Colors.FgGreen + input + Colors.Reset}`).join(''))
-        else if (type === 'cancel') stdout.write(showContent.map(input => `${col + Symbols.LineVertical + Colors.Reset} ${col + input + Colors.Reset}`).join(''))
-        else stdout.write(toShow.map(input => `${col + Symbols.LineVertical + Colors.Reset} ${is === 'placeholder' ? Colors.Dim : ''}${input + Colors.Reset}`).join(''))
 
-        if (type === 'err') {
-          const errSplited = err!.match(regex)!
+        stdout.write(
+          `${splitedTitle
+            .map((title, index) => {
+              if (index === 0) return `${color + symbol + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
+              else return `${color + Symbols.LineVertical + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
+            })
+            .join('\n')}\n`
+        )
+        stdout.write(`${toShow.map(input => `${color + Symbols.LineVertical + Colors.Reset} ${is === 'placeholder' ? Colors.Dim : extraColor}${input + Colors.Reset}`).join('\n')}\n${color + line} `)
+
+        if (type === 'cancel' && !options.onCancel) stdout.write('Operation cancelled')
+        if (type === 'err' && err) {
+          const errSplited = err.match(regex)!
           let showErr = ''
 
           if (errSplited.length > 1) showErr = errSplited[0].slice(0, -3) + '...'
           else showErr = errSplited[0]
 
-          stdout.write(`\n${col + Symbols.BottomLeftCorner} ${showErr + Colors.Reset}`)
-        } else stdout.write(`\n${col}${type === 'enter' ? Symbols.LineVertical : Symbols.BottomLeftCorner} ${type === 'cancel' ? 'Operation cancelled' : ''}${Colors.Reset}`)
+          stdout.write(showErr)
+        }
 
-        if (is === 'input' || type === 'cancel') moveCursor(stdout, 0, -1)
+        stdout.write(Colors.Reset)
+
+        if (is === 'input') moveCursor(stdout, 0, -1)
         else moveCursor(stdout, 0, toShow.length * -1)
 
-        cursorTo(stdout, showContent[showContent.length - 1].length + 2)
+        cursorTo(stdout, splitedContent[splitedContent.length - 1].length + 2)
       }
 
       if (isCancel) {
         updateConsole('cancel')
         moveCursor(stdout, 0, 1)
-        stdout.write('\n')
-        process.exit(0)
+        if (options.onCancel) {
+          stdin.removeListener('data', listener)
+          stdin.pause()
+          cursorTo(stdout, 2)
+          options.onCancel()
+        } else {
+          stdout.write('\n')
+          process.exit(0)
+        }
       } else if (isEnter) {
         if (options.verify && typeof options.verify(Number(userInput)) === 'string') return updateConsole('err', options.verify(Number(userInput))!)
 
@@ -161,18 +174,20 @@ export function number(options: NumberOptions): Promise<number> {
         updateConsole('enter')
         moveCursor(stdout, 0, 1)
         stdout.write('\n')
-        resolve(Number(userInput))
         stdin.removeListener('data', listener)
         stdin.pause()
+        resolve(Number(userInput))
       } else if (isDel) {
         userInput = userInput.slice(0, -1)
         updateConsole('del')
       } else {
         if (isArrow) return
-        if (userInput.replace('.', '').length === 17) return
-        if (!NUMBERS.includes(key) && key !== '.') return
+        if (userInput.replace('.', '').replace('-', '').length === 16) return
+        if (!NUMBERS.includes(key) && key !== '.' && key !== '-') return
         if (key === '.' && userInput.includes('.')) return
+        if (key === '-' && userInput.length !== 0) return
         if (key === '.' && !options.decimal) return
+        if (key === '-' && !options.negative) return
 
         userInput += key
         updateConsole('add')

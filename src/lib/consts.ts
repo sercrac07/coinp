@@ -15,6 +15,7 @@ export const Unicode = {
   ShowCursor: '\u001B[?25h',
 } as const
 
+/** All symbols used in the package. */
 export const Symbols = {
   LineHorizontal: '─',
   LineVertical: '│',
@@ -40,10 +41,11 @@ export const Symbols = {
   Error: '▲',
 } as const
 
+/** Colors for customization. */
 export const Colors = {
   Reset: '\x1b[0m',
   Bright: '\x1b[1m',
-  Dim: '\x1b[2m',
+  Dim: '\x1b[90m\x1b[2m',
   Underscore: '\x1b[4m',
   Blink: '\x1b[5m',
   Reverse: '\x1b[7m',
