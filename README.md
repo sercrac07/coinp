@@ -53,22 +53,26 @@ const food = await checkbox({
 Thanks to the `loader` function, you can create a loading icon, allowing for customization of the loading message. This ensures users are informed at all times about ongoing processes.
 
 ```javascript
-const downloadLoader = loader('Fetching data', 'Downloading data', 'Executing data')
-downloadLoader.start()
+const downloadLoader = loader()
+downloadLoader.start('Downloading data')
 // Some stuff...
-downloadLoader.next('Data obtained correctly')
-// Some stuff...
-downloadLoader.next('Data downloaded successfully')
-// Some stuff...
-downloadLoader.end('Ended working with data')
+downloadLoader.stop('Download finished')
 ```
 
 ## Extra
 
-Thanks to additional functions like intro, outro, and info, you can display enhanced messages with extra information, each used in different parts of the application.
+Thanks to additional functions like `intro`, `outro`, and `info`, you can display enhanced messages with extra information, each used in different parts of the application.
 
 ```javascript
 intro('Hello world')
 info('This is an info message')
 outro('Bye world')
+```
+
+## Password
+
+The `password` function allows for the secure input of user data, hiding the text as it's entered. It supports default values and real-time validation.
+
+```javascript
+const pass = await text({ message: "What's your password?" })
 ```
