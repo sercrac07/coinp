@@ -1,4 +1,5 @@
 export { text } from './text'
+export { password } from './password'
 export { number } from './number'
 export { select } from './select'
 export { checkbox } from './checkbox'
