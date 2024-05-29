@@ -131,7 +131,7 @@ export function password(options: PasswordOptions): Promise<string> {
         stdout.write(`${toShow.map(input => `${color + Symbols.LineVertical + Colors.Reset} ${is === 'placeholder' ? Colors.Dim : extraColor}${input.replace(/./g, '*') + Colors.Reset}`).join('\n')}\n${color + line} `)
 
         if (type === 'cancel' && !options.onCancel) stdout.write('Operation cancelled')
-        if (type === 'err' && err) {
+        else if (type === 'err' && err) {
           const errSplited = err.match(regex)!
           let showErr = ''
 

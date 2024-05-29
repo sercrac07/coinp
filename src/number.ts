@@ -137,7 +137,7 @@ export function number(options: NumberOptions): Promise<number> {
         stdout.write(`${toShow.map(input => `${color + Symbols.LineVertical + Colors.Reset} ${is === 'placeholder' ? Colors.Dim : extraColor}${input + Colors.Reset}`).join('\n')}\n${color + line} `)
 
         if (type === 'cancel' && !options.onCancel) stdout.write('Operation cancelled')
-        if (type === 'err' && err) {
+        else if (type === 'err' && err) {
           const errSplited = err.match(regex)!
           let showErr = ''
 
