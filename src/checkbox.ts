@@ -12,6 +12,8 @@ interface CheckboxOptions<T extends string> {
   cursorAt?: NoInfer<T>
   /** All initial values that will appear as selected. */
   initialValues?: NoInfer<T>[]
+  /** A function that allows verifying the value entered by the user before submitting it. */
+  verify?: (value: T[]) => string | undefined | void
   /** A function that runs when the operation is canceled. */
   onCancel?: () => void
 }
@@ -84,8 +86,8 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
     stdout.write(
       `${linesOptions
         .map((line, index) => {
-          if (line.content.length !== 1) return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset + ''}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0].slice(0, -3)}...${Colors.Reset}`
-          return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset + ''}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0] + Colors.Reset}`
+          if (line.content.length !== 1) return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0].slice(0, -3)}...${Colors.Reset}`
+          return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0] + Colors.Reset}`
         })
         .join('\n')}\n${Colors.FgBlue + Symbols.BottomLeftCorner} ${options.choices.length > showOptions.length && showing[0] !== 0 ? `${Symbols.TopArrow} ` : ''}${options.choices.length > showOptions.length && showing[1] !== options.choices.length ? `${Symbols.DownArrow} ` : ''}${Colors.Reset}`
     )
@@ -99,8 +101,8 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
       const isUpArrow = key === Unicode.UpArrow
       const isDownArrow = key === Unicode.DownArrow
 
-      const updateConsole = (type: 'arrow' | 'enter' | 'cancel') => {
-        const color = type === 'arrow' ? Colors.FgBlue : Colors.FgRed
+      const updateConsole = (type: 'arrow' | 'enter' | 'cancel' | 'err', err?: string) => {
+        const color = type === 'cancel' ? Colors.FgRed : type === 'err' ? Colors.FgYellow : Colors.FgBlue
         const symbol = type === 'arrow' ? Symbols.Unanswered : Symbols.Error
 
         moveCursor(stdout, 0, (splitedTitle.length + options.choices.length) * -1)
@@ -146,8 +148,8 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
         stdout.write(
           `${linesOptions
             .map((line, index) => {
-              if (line.content.length !== 1) return `${color + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset + ''}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0].slice(0, -3)}...${Colors.Reset}`
-              return `${color + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset + ''}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0] + Colors.Reset}`
+              if (line.content.length !== 1) return `${color + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0].slice(0, -3)}...${Colors.Reset}`
+              return `${color + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0] + Colors.Reset}`
             })
             .join('\n')}\n${color + Symbols.BottomLeftCorner} ${options.choices.length > showOptions.length && showing[0] !== 0 ? `${Symbols.TopArrow} ` : ''}${options.choices.length > showOptions.length && showing[1] !== options.choices.length ? `${Symbols.DownArrow} ` : ''}`
         )
@@ -155,6 +157,14 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
         if (type === 'cancel') {
           stdout.write(Unicode.ShowCursor)
           if (!options.onCancel) stdout.write('Operation cancelled')
+        } else if (type === 'err' && err) {
+          const errSplited = err.match(regex)!
+          let showErr = ''
+
+          if (errSplited.length > 1) showErr = errSplited[0].slice(0, -3) + '...'
+          else showErr = errSplited[0]
+
+          stdout.write(showErr)
         }
 
         stdout.write(Colors.Reset)
@@ -173,6 +183,8 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
           process.exit(0)
         }
       } else if (isEnter) {
+        if (options.verify && typeof options.verify(userSelection) === 'string') return updateConsole('err', options.verify(userSelection)!)
+
         updateConsole('enter')
         stdout.write('\n')
         stdin.removeListener('data', listener)

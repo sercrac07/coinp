@@ -1,7 +1,7 @@
 {
   "name": "coinp",
   "description": "Coinp simplifies user input collection in console applications.",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
