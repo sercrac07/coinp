@@ -13,7 +13,7 @@ interface Loader {
 /** The `loader` function enables the creation of a loading icon, providing visual feedback to users during ongoing processes. */
 export function loader(onCancel?: () => void): Loader {
   const regex = new RegExp(`.{1,${stdout.columns - 2}}`, 'g')
-  let initialText: string[] = []
+  let initialText: string[]
 
   let currentLoad = 0
   let dots = ''
@@ -42,6 +42,8 @@ export function loader(onCancel?: () => void): Loader {
   }
 
   const start = (text: string) => {
+    if (initialText) throw new Error('Loader has already started')
+
     stdin.resume()
     stdin.setEncoding('utf-8')
     stdin.setRawMode(true)
@@ -78,16 +80,20 @@ export function loader(onCancel?: () => void): Loader {
   }
 
   const stop = (text: string) => {
+    if (!initialText) throw new Error("Loader hasn't started yet")
+
     stdin.removeListener('data', listener)
     stdin.pause()
     if (!interval) return
     clearInterval(interval)
 
+    const splitedText = text.match(regex) ?? ['']
+
     moveCursor(stdout, 0, initialText.length * -1)
     cursorTo(stdout, 0)
     clearScreenDown(stdout)
 
-    stdout.write(`${Colors.FgGreen + Symbols.Answered + Colors.Reset} ${Colors.Bright + text + Unicode.ShowCursor}\n${Colors.FgGreen + Symbols.LineVertical + Colors.Reset}\n`)
+    stdout.write(`${Unicode.ShowCursor + splitedText.map((txt, index) => `${Colors.FgGreen}${index === 0 ? Symbols.Answered : Symbols.LineVertical}${Colors.Reset} ${Colors.Bright + txt + Colors.Reset}`).join('\n')}\n${Colors.FgGreen + Symbols.LineVertical + Colors.Reset}\n`)
   }
 
   return {

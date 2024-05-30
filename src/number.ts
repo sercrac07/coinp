@@ -134,7 +134,7 @@ export function number(options: NumberOptions): Promise<number> {
             })
             .join('\n')}\n`
         )
-        stdout.write(`${toShow.map(input => `${color + Symbols.LineVertical + Colors.Reset} ${is === 'placeholder' ? Colors.Dim : extraColor}${input + Colors.Reset}`).join('\n')}\n${color + line} `)
+        stdout.write(`${toShow.map(input => `${color + Symbols.LineVertical + Colors.Reset} ${is === 'placeholder' ? Colors.Dim : extraColor}${Number(input).toString() + Colors.Reset}`).join('\n')}\n${color + line} `)
 
         if (type === 'cancel' && !options.onCancel) stdout.write('Operation cancelled')
         else if (type === 'err' && err) {
