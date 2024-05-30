@@ -1,26 +1,38 @@
 # Coinp
 
-Coinp is a lightweight npm package that facilitates user input collection through the console. It simplifies the process of gathering various types of input data such as text, numbers, lists, and more. With Coinp, developers can seamlessly integrate interactive console-based user experiences into their applications. Say goodbye to complex input handling logic and embrace the simplicity of Coinp for efficient console-based input management.
+## Description
 
-## Text
+`coinp` is a lightweight package that provides easy-to-use methods for collecting user input from the command line interface. It offers various input methods such as text, number, select, checkbox, and password, along with additional functionalities like intro, outro, info messages, loader, and downloader.
 
-Collect user input using the `text` function, enabling you to display default values and verify user input in real-time.
+## Installation
+
+You can install `coinp` via npm:
+
+```bash
+npm install coinp
+```
+
+## Usage
+
+### Text
+
+Allows the user to input text.
 
 ```javascript
 const name = await text({ message: "What's your name?" })
 ```
 
-## Number
+### Number
 
-With the `number` function, gather user input in numerical format, supporting both decimals and whole numbers.
+Allows the user to input a number.
 
 ```javascript
 const age = await number({ message: "What's your age?" })
 ```
 
-## Select
+### Select
 
-Utilize the `select` function to enable users to select an option from a predefined list of choices.
+Presents the user with a list of choices, allowing them to select one.
 
 ```javascript
 const lang = await select({
@@ -33,9 +45,9 @@ const lang = await select({
 })
 ```
 
-## Checkbox
+### Checkbox
 
-By using the `checkbox` function, users can select multiple options from a list of choices.
+Presents the user with a list of choices, allowing them to select multiple options.
 
 ```javascript
 const food = await checkbox({
@@ -48,20 +60,17 @@ const food = await checkbox({
 })
 ```
 
-## Loader
+### Password
 
-Thanks to the `loader` function, you can create a loading icon, allowing for customization of the loading message. This ensures users are informed at all times about ongoing processes.
+Allows the user to input a password without displaying it on the screen.
 
 ```javascript
-const downloadLoader = loader()
-downloadLoader.start('Downloading data')
-// Some stuff...
-downloadLoader.stop('Download finished')
+const pass = await text({ message: "What's your password?" })
 ```
 
-## Extra
+### Additional Methods
 
-Thanks to additional functions like `intro`, `outro`, and `info`, you can display enhanced messages with extra information, each used in different parts of the application.
+Allows the user to display embedded messages.
 
 ```javascript
 intro('Hello world')
@@ -69,10 +78,30 @@ info('This is an info message')
 outro('Bye world')
 ```
 
-## Password
+### Loader
 
-The `password` function allows for the secure input of user data, hiding the text as it's entered. It supports default values and real-time validation.
+Shows a loader animation to indicate a process is ongoing.
 
 ```javascript
-const pass = await text({ message: "What's your password?" })
+const downloadLoader = loader()
+downloadLoader.start('Downloading data')
+// Some stuff...
+downloadLoader.end('Download finished')
 ```
+
+### Downloader
+
+Shows a progress bar to indicate the progress of a download.
+
+```javascript
+const downloadTrack = downloader()
+downloadTrack.start('Downloading data')
+// Some download...
+downloadTrack.update(50) // Update download percentage
+// Some download...
+downloadTrack.end('Download finished')
+```
+
+## How to Contribute
+
+If you want to contribute to `coinp`, feel free to fork the repository and submit a pull request with your changes.

@@ -6,8 +6,8 @@ import { Colors, Symbols, Unicode } from './lib/consts'
 interface Loader {
   /** Starts the loader. */
   start: (text: string) => void
-  /** Stops the loader */
-  stop: (text: string) => void
+  /** Ends the loader. */
+  end: (text: string) => void
 }
 
 /** The `loader` function enables the creation of a loading icon, providing visual feedback to users during ongoing processes. */
@@ -79,7 +79,7 @@ export function loader(onCancel?: () => void): Loader {
     }, 100)
   }
 
-  const stop = (text: string) => {
+  const end = (text: string) => {
     if (!initialText) throw new Error("Loader hasn't started yet")
 
     stdin.removeListener('data', listener)
@@ -98,6 +98,6 @@ export function loader(onCancel?: () => void): Loader {
 
   return {
     start,
-    stop,
+    end,
   }
 }

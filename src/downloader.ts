@@ -3,11 +3,15 @@ import { Colors, Symbols, Unicode } from './lib/consts'
 import { clearScreenDown, cursorTo, moveCursor } from 'readline'
 
 interface Downloader {
+  /** Starts the downloader. */
   start: (text: string, percent?: number) => void
+  /** Updates the downloader percentage. */
   update: (percent: number) => void
+  /** Ends the downloader. */
   end: (text: string) => void
 }
 
+/** The `downloader` function enables the creation of a download animation, providing visual tracking on downloads. */
 export function downloader(onCancel?: () => void): Downloader {
   const regex = new RegExp(`.{1,${stdout.columns - 2}}`, 'g')
 
