@@ -21,8 +21,10 @@ interface CheckboxOptions<T extends string> {
 interface CheckboxChoice<T extends string> {
   /** Text to display. */
   label: string
-  /** The return value */
+  /** The return value. */
   value: T
+  /** Displays a message when the user hovers over an option. */
+  hint?: string
 }
 
 /** The `checkbox` function provides users with the capability to select multiple options simultaneously from a predefined list of choices. */
@@ -69,7 +71,7 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
     }
 
     let showOptions = options.choices.map(choice => choice).slice(showing[0], showing[1])
-    let linesOptions = showOptions.map(choice => ({ content: choice.label.match(choiceRegex)!, selected: userSelection.includes(choice.value) }))
+    let linesOptions = showOptions.map(choice => ({ content: choice.label.match(choiceRegex)!, selected: userSelection.includes(choice.value), hint: choice.hint }))
 
     stdout.write(
       `${
@@ -86,8 +88,10 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
     stdout.write(
       `${linesOptions
         .map((line, index) => {
+          const canHint = line.hint !== undefined && index + showing[0] === userCurrent
+          const diffHint = canHint ? stdout.columns - (line.content[0].length + 4) - (line.hint!.length + 3) : 0
           if (line.content.length !== 1) return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0].slice(0, -3)}...${Colors.Reset}`
-          return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0] + Colors.Reset}`
+          return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${`${line.content[0] + Colors.Reset + Colors.Dim}${canHint ? ` (${line.hint!})`.slice(0, diffHint < 0 ? diffHint : undefined) : ''}` + Colors.Reset}`
         })
         .join('\n')}\n${Colors.FgBlue + Symbols.BottomLeftCorner} ${options.choices.length > showOptions.length && showing[0] !== 0 ? `${Symbols.TopArrow} ` : ''}${options.choices.length > showOptions.length && showing[1] !== options.choices.length ? `${Symbols.DownArrow} ` : ''}${Colors.Reset}`
     )
@@ -131,7 +135,7 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
         }
 
         showOptions = options.choices.map(choice => choice).slice(showing[0], showing[1])
-        linesOptions = showOptions.map(choice => ({ content: choice.label.match(choiceRegex)!, selected: userSelection.includes(choice.value) }))
+        linesOptions = showOptions.map(choice => ({ content: choice.label.match(choiceRegex)!, selected: userSelection.includes(choice.value), hint: choice.hint }))
 
         stdout.write(
           `${
@@ -148,8 +152,10 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
         stdout.write(
           `${linesOptions
             .map((line, index) => {
+              const canHint = line.hint !== undefined && index + showing[0] === userCurrent
+              const diffHint = canHint ? stdout.columns - (line.content[0].length + 4) - (line.hint!.length + 3) : 0
               if (line.content.length !== 1) return `${color + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0].slice(0, -3)}...${Colors.Reset}`
-              return `${color + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0] + Colors.Reset}`
+              return `${color + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${`${line.content[0] + Colors.Reset + Colors.Dim}${canHint ? ` (${line.hint!})`.slice(0, diffHint < 0 ? diffHint : undefined) : ''}` + Colors.Reset}`
             })
             .join('\n')}\n${color + Symbols.BottomLeftCorner} ${options.choices.length > showOptions.length && showing[0] !== 0 ? `${Symbols.TopArrow} ` : ''}${options.choices.length > showOptions.length && showing[1] !== options.choices.length ? `${Symbols.DownArrow} ` : ''}`
         )

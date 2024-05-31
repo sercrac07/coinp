@@ -19,6 +19,8 @@ interface SelectChoice<T extends string> {
   label: string
   /** The return value */
   value: T
+  /** Displays a message when the user hovers over an option. */
+  hint?: string
 }
 
 /** The `list` function empowers users to select a single option from a predefined list of choices. */
@@ -55,8 +57,8 @@ export function select<T extends string>(options: SelectOptions<T>): Promise<T> 
       else showing = [userCurrent, userCurrent + dif]
     }
 
-    let showOptions = options.choices.map(choice => choice.label).slice(showing[0], showing[1])
-    let linesOptions = showOptions.map(choice => choice.match(choiceRegex)!)
+    let showOptions = options.choices.map(choice => choice).slice(showing[0], showing[1])
+    let linesOptions = showOptions.map(choice => ({ content: choice.label.match(choiceRegex)!, hint: choice.hint }))
 
     stdout.write(
       `${
@@ -73,8 +75,10 @@ export function select<T extends string>(options: SelectOptions<T>): Promise<T> 
     stdout.write(
       `${linesOptions
         .map((line, index) => {
-          if (line.length !== 1) return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line[0].slice(0, -3)}...${Colors.Reset}`
-          return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line[0] + Colors.Reset}`
+          const canHint = line.hint !== undefined && index + showing[0] === userCurrent
+          const diffHint = canHint ? stdout.columns - (line.content[0].length + 4) - (line.hint!.length + 3) : 0
+          if (line.content.length !== 1) return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${index + showing[0] === userCurrent ? Symbols.RightArrow : ' '} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0].slice(0, -3)}...${Colors.Reset}`
+          return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${index + showing[0] === userCurrent ? Symbols.RightArrow : ' '} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${`${line.content[0] + Colors.Reset + Colors.Dim}${canHint ? ` (${line.hint!})`.slice(0, diffHint < 0 ? diffHint : undefined) : ''}` + Colors.Reset}`
         })
         .join('\n')}\n${Colors.FgBlue + Symbols.BottomLeftCorner} ${options.choices.length > showOptions.length && showing[0] !== 0 ? `${Symbols.TopArrow} ` : ''}${options.choices.length > showOptions.length && showing[1] !== options.choices.length ? `${Symbols.DownArrow} ` : ''}${Colors.Reset}`
     )
@@ -109,8 +113,8 @@ export function select<T extends string>(options: SelectOptions<T>): Promise<T> 
           )
         }
 
-        showOptions = options.choices.map(choice => choice.label).slice(showing[0], showing[1])
-        linesOptions = showOptions.map(choice => choice.match(choiceRegex)!)
+        showOptions = options.choices.map(choice => choice).slice(showing[0], showing[1])
+        linesOptions = showOptions.map(choice => ({ content: choice.label.match(choiceRegex)!, hint: choice.hint }))
 
         stdout.write(
           `${
@@ -127,8 +131,10 @@ export function select<T extends string>(options: SelectOptions<T>): Promise<T> 
         stdout.write(
           `${linesOptions
             .map((line, index) => {
-              if (line.length !== 1) return `${color + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line[0].slice(0, -3)}...${Colors.Reset}`
-              return `${color + Symbols.LineVertical} ${index + showing[0] === userCurrent ? Symbols.RightArrow : Colors.Reset + ' '} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line[0] + Colors.Reset}`
+              const canHint = line.hint !== undefined && index + showing[0] === userCurrent
+              const diffHint = canHint ? stdout.columns - (line.content[0].length + 4) - (line.hint!.length + 3) : 0
+              if (line.content.length !== 1) return `${color + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${index + showing[0] === userCurrent ? Symbols.RightArrow : ' '} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0].slice(0, -3)}...${Colors.Reset}`
+              return `${color + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${index + showing[0] === userCurrent ? Symbols.RightArrow : ' '} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${`${line.content[0] + Colors.Reset + Colors.Dim}${canHint ? ` (${line.hint!})`.slice(0, diffHint < 0 ? diffHint : undefined) : ''}` + Colors.Reset}`
             })
             .join('\n')}\n${color + Symbols.BottomLeftCorner} ${options.choices.length > showOptions.length && showing[0] !== 0 ? `${Symbols.TopArrow} ` : ''}${options.choices.length > showOptions.length && showing[1] !== options.choices.length ? `${Symbols.DownArrow} ` : ''}`
         )
