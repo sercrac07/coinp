@@ -73,9 +73,9 @@ const pass = await text({ message: "What's your password?" })
 Allows the user to display embedded messages.
 
 ```javascript
-intro('Hello world')
-info('This is an info message')
-outro('Bye world')
+intro({ title: 'Hello world' })
+info({ title: 'This is an info message' })
+outro({ title: 'Bye world' })
 ```
 
 ### Loader
