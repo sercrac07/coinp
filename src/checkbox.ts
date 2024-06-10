@@ -8,7 +8,7 @@ interface CheckboxOptions<T extends string> {
   message: string
   /** All the options available for the user to choose from. */
   choices: CheckboxChoice<T>[]
-  /** The initial cursor value. */
+  /** The initial cursor postion. */
   cursorAt?: NoInfer<T>
   /** All initial values that will appear as selected. */
   initialValues?: NoInfer<T>[]
