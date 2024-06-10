@@ -8,7 +8,7 @@ interface SelectOptions<T extends string> {
   message: string
   /** All the options available for the user to choose from. */
   choices: SelectChoice<T>[]
-  /** The initial cursor value. */
+  /** The initial cursor position. */
   cursorAt?: NoInfer<T>
   /** A function that runs when the operation is canceled. */
   onCancel?: () => void
