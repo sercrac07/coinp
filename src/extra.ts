@@ -15,21 +15,29 @@ interface InfoOptions {
 }
 
 /** The intro function allows you to display an introductory message with embellished information at the beginning of an application or section. */
-export function intro(options: InfoOptions): void {
-  const title = options.title
-  const message = options.message ?? []
-  const type = options.type ?? 'info'
+export function intro(title: string, ...message: string[]): void
+export function intro(options: InfoOptions): void
+export function intro(options: InfoOptions | string, ...message: string[]): void {
+  let title: string
+  if (typeof options === 'string') title = options
+  else title = options.title
+
+  let messages: string[]
+  if (typeof options === 'string') messages = message
+  else messages = options.message ?? []
+
+  const type = typeof options === 'string' ? 'info' : options.type ?? 'info'
 
   const col = type === 'error' ? Colors.FgRed : Colors.FgGreen
   const symb = type === 'error' ? Symbols.Error : Symbols.Answered
 
   const splittedTitle = title.trim().match(regexTitle)!
-  const splittedMessage = message.map(mes => mes.trim().match(regex)!)
+  const splittedMessage = messages.map(mes => mes.trim().match(regex)!)
 
   const largestString = getLargestStringLength([...splittedMessage.flatMap(str => str), ...splittedTitle])
   const [titleLength, messageLength] = [getLargestStringLength(splittedTitle), getLargestStringLength(splittedMessage.flatMap(str => str))]
 
-  if (message.length === 0) stdout.write(`${splittedTitle.map((ttl, index) => `${col}${index === 0 ? symb : Symbols.LineVertical} ${Colors.Reset + Colors.Reverse} ${ttl} ${Colors.Reset + col}`).join('\n')}\n${Symbols.LineVertical}\n${Symbols.LineVertical + Colors.Reset}\n`)
+  if (messages.length === 0) stdout.write(`${splittedTitle.map((ttl, index) => `${col}${index === 0 ? symb : Symbols.LineVertical} ${Colors.Reset + Colors.Reverse} ${ttl} ${Colors.Reset + col}`).join('\n')}\n${Symbols.LineVertical}\n${Symbols.LineVertical + Colors.Reset}\n`)
   else {
     let extra = 0
 
@@ -47,21 +55,29 @@ export function intro(options: InfoOptions): void {
 }
 
 /** The outro function is used to present a concluding message with additional details at the end of an application or section. It serves to summarize key points and provide closure to user interactions. */
-export function outro(options: InfoOptions): void {
-  const title = options.title
-  const message = options.message ?? []
-  const type = options.type ?? 'info'
+export function outro(title: string, ...message: string[]): void
+export function outro(options: InfoOptions): void
+export function outro(options: InfoOptions | string, ...message: string[]): void {
+  let title: string
+  if (typeof options === 'string') title = options
+  else title = options.title
+
+  let messages: string[]
+  if (typeof options === 'string') messages = message
+  else messages = options.message ?? []
+
+  const type = typeof options === 'string' ? 'info' : options.type ?? 'info'
 
   const col = type === 'error' ? Colors.FgRed : Colors.FgGreen
   const symb = type === 'error' ? Symbols.Error : Symbols.Answered
 
   const splittedTitle = title.trim().match(regexTitle)!
-  const splittedMessage = message.map(mes => mes.trim().match(regex)!)
+  const splittedMessage = messages.map(mes => mes.trim().match(regex)!)
 
   const largestString = getLargestStringLength([...splittedMessage.flatMap(str => str), ...splittedTitle])
   const [titleLength, messageLength] = [getLargestStringLength(splittedTitle), getLargestStringLength(splittedMessage.flatMap(str => str))]
 
-  if (message.length === 0) stdout.write(`${splittedTitle.map((ttl, index) => `${col}${index === 0 ? symb : ' '} ${Colors.Reset + Colors.Reverse} ${ttl} ${Colors.Reset + col}`).join('\n')}${Colors.Reset}\n`)
+  if (messages.length === 0) stdout.write(`${splittedTitle.map((ttl, index) => `${col}${index === 0 ? symb : ' '} ${Colors.Reset + Colors.Reverse} ${ttl} ${Colors.Reset + col}`).join('\n')}${Colors.Reset}\n`)
   else {
     let extra = 0
 
@@ -79,21 +95,29 @@ export function outro(options: InfoOptions): void {
 }
 
 /** The info function enables the presentation of informational messages with enriched content throughout the application. This function is versatile and can be utilized to provide users with relevant information or instructions at various stages of their interaction. */
-export function info(options: InfoOptions): void {
-  const title = options.title
-  const message = options.message ?? []
-  const type = options.type ?? 'info'
+export function info(title: string, ...message: string[]): void
+export function info(options: InfoOptions): void
+export function info(options: InfoOptions | string, ...message: string[]): void {
+  let title: string
+  if (typeof options === 'string') title = options
+  else title = options.title
+
+  let messages: string[]
+  if (typeof options === 'string') messages = message
+  else messages = options.message ?? []
+
+  const type = typeof options === 'string' ? 'info' : options.type ?? 'info'
 
   const col = type === 'error' ? Colors.FgRed : Colors.FgGreen
   const symb = type === 'error' ? Symbols.Error : Symbols.Answered
 
   const splittedTitle = title.trim().match(regexTitle)!
-  const splittedMessage = message.map(mes => mes.trim().match(regex)!)
+  const splittedMessage = messages.map(mes => mes.trim().match(regex)!)
 
   const largestString = getLargestStringLength([...splittedMessage.flatMap(str => str), ...splittedTitle])
   const [titleLength, messageLength] = [getLargestStringLength(splittedTitle), getLargestStringLength(splittedMessage.flatMap(str => str))]
 
-  if (message.length === 0) stdout.write(`${splittedTitle.map((ttl, index) => `${col}${index === 0 ? symb : Symbols.LineVertical} ${Colors.Reset + Colors.Reverse} ${ttl} ${Colors.Reset + col}`).join('\n')}\n${Symbols.LineVertical}\n${Symbols.LineVertical + Colors.Reset}\n`)
+  if (messages.length === 0) stdout.write(`${splittedTitle.map((ttl, index) => `${col}${index === 0 ? symb : Symbols.LineVertical} ${Colors.Reset + Colors.Reverse} ${ttl} ${Colors.Reset + col}`).join('\n')}\n${Symbols.LineVertical}\n${Symbols.LineVertical + Colors.Reset}\n`)
   else {
     let extra = 0
     stdout.write(
