@@ -1,12 +1,25 @@
 # Coinp
 
-## Description
+[![npm version](https://badge.fury.io/js/coinp.svg)](https://badge.fury.io/js/sdet)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 `coinp` is a lightweight package that provides easy-to-use methods for collecting user input from the command line interface. It offers various input methods such as text, number, select, checkbox, and password, along with additional functionalities like intro, outro, info messages, loader, and downloader.
 
+## Features
+
+- **Text Input:** Collect text input from the user.
+- **Number Input:** Collect numeric input from the user.
+- **Select Input:** Present a list of choices for the user to select from.
+- **Checkbox Input:** Allow the user to select multiple options from a list of choices.
+- **Password Input:** Collect hidden text input (e.g., passwords).
+- **Intro and Outro Messages:** Display introductory and closing messages.
+- **Info Messages:** Display informational messages.
+- **Loader:** Show a loader animation to indicate ongoing processes.
+- **Downloader:** Show a progress bar to track download progress.
+
 ## Installation
 
-You can install `coinp` via npm:
+You can install the package via npm:
 
 ```bash
 npm install coinp
@@ -14,94 +27,98 @@ npm install coinp
 
 ## Usage
 
-### Text
-
-Allows the user to input text.
-
 ```javascript
-const name = await text({ message: "What's your name?" })
-```
+import coinp from 'coinp'
 
-### Number
+const wait = (ms: number) => new Promise(res => setTimeout(res, ms))
 
-Allows the user to input a number.
+coinp.intro('Start your adventure', 'Example of coinp usage')
 
-```javascript
-const age = await number({ message: "What's your age?" })
-```
+const username = await coinp.text({
+  message: 'Whats your username?',
+  placeholder: 'sercrac07',
+  verify(value) {
+    if (!Boolean(value)) return 'You must provide a username'
+  },
+})
 
-### Select
+const age = await coinp.number({
+  message: `Hello ${username}, how old are you?`,
+  placeholder: 18,
+  verify(value) {
+    if (value > 100 || value < 1) return 'You must provide a valid age'
+  },
+})
 
-Presents the user with a list of choices, allowing them to select one.
+const password = await coinp.password({
+  message: "What's your account password?",
+  verify(value) {
+    if (!Boolean(value)) return 'You must provide a password'
+  },
+})
 
-```javascript
-const lang = await select({
-  message: "What's your favorite language?",
+coinp.info({ title: 'Logged as guest', message: [`User "${username}" with password "${password}" was not found`], type: 'error' })
+
+const difficulty = await coinp.select({
+  message: 'What level difficulty do you want to play?',
   choices: [
-    { label: 'HTML', value: 'html' },
-    { label: 'CSS', value: 'css' },
-    { label: 'JavaScript', value: 'js' },
+    { label: 'Easy', value: 'easy' },
+    { label: 'Medium', value: 'medium', hint: 'recommended' },
+    { label: 'Hard', value: 'hard' },
   ],
 })
-```
 
-### Checkbox
-
-Presents the user with a list of choices, allowing them to select multiple options.
-
-```javascript
-const food = await checkbox({
-  message: "What's your favorite food?",
+const tools = await coinp.checkbox({
+  message: 'Do you want to start with some tools?',
   choices: [
-    { label: 'Pizza', value: 'pizza' },
-    { label: 'Burger', value: 'burger' },
-    { label: 'Rice', value: 'rice' },
+    { label: 'Sword', value: 'sword', hint: `Too ${age > 18 ? 'old' : 'young'} for a sword` },
+    { label: 'Axe', value: 'axe' },
+    { label: 'shovel', value: 'shovel' },
   ],
 })
+
+const loader = coinp.loader()
+loader.start('Starting world generation')
+await wait(4000)
+loader.end('World generated succesfully')
+
+if (tools.length !== 0) {
+  const downloader = coinp.downloader()
+  downloader.start('Giving starter tools to the user')
+
+  for (let i = 0; i < tools.length; i++) {
+    let sum = 100 / tools.length
+    await wait(2000)
+    downloader.update(sum * (i + 1))
+  }
+
+  downloader.end('Tools given succesfully')
+}
+
+coinp.outro(`Adventure started in ${difficulty} mode!`, 'Thanks for using coinp')
 ```
 
-### Password
+## Contributing
 
-Allows the user to input a password without displaying it on the screen.
+Contributions are welcome! If you find any issues or have suggestions for improvement, please open an issue or submit a pull request. Here are some ways you can contribute:
 
-```javascript
-const pass = await text({ message: "What's your password?" })
-```
+- **Bug Reports:** If you find any bugs or unexpected behavior, please open an issue describing the problem.
+- **Feature Requests:** If you have ideas for new features or improvements, feel free to suggest them by opening an issue.
+- **Code Contributions:** Contributions to the codebase via pull requests are highly appreciated. Before submitting a pull request, please make sure to follow the contribution guidelines below.
 
-### Additional Methods
+### Contribution Guidelines
 
-Allows the user to display embedded messages.
+1. Fork the repository and clone it to your local machine.
+2. Create a new branch for your feature/fix: `git checkout -b feature-name`.
+3. Make changes and test them thoroughly.
+4. Ensure that your code follows the existing code style and conventions.
+5. Update the README and documentation if necessary.
+6. Commit your changes with descriptive commit messages.
+7. Push your branch to your fork: `git push origin feature-name`.
+8. Open a pull request to the `main` branch of the original repository.
 
-```javascript
-intro('Hello World!')
-info({ title: 'This is an info message' })
-outro({ title: 'Bye World!' })
-```
+Thank you for contributing to `coinp`!
 
-### Loader
+## License
 
-Shows a loader animation to indicate a process is ongoing.
-
-```javascript
-const downloadLoader = loader()
-downloadLoader.start('Downloading data')
-// Some stuff...
-downloadLoader.end('Download finished')
-```
-
-### Downloader
-
-Shows a progress bar to indicate the progress of a download.
-
-```javascript
-const downloadTrack = downloader()
-downloadTrack.start('Downloading data')
-// Some download...
-downloadTrack.update(50) // Update download percentage
-// Some download...
-downloadTrack.end('Download finished')
-```
-
-## How to Contribute
-
-If you want to contribute to `coinp`, feel free to fork the repository and submit a pull request with your changes.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
