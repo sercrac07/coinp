@@ -3,7 +3,8 @@ export const Unicode = {
   Esc: '\x1B',
 
   Enter: '\r',
-  Backspace: '\b',
+  Backspace: ['\b', '\x7F'],
+  ControlBackspace: '',
   Spacebar: '\u0020',
 
   UpArrow: '\x1B[A',

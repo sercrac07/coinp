@@ -87,7 +87,7 @@ export function number(options: NumberOptions): Promise<number> {
       const key = data.toString()
 
       const isCancel = key === Unicode.ControlC || key === Unicode.Esc
-      const isDel = key === Unicode.Backspace
+      const isDel = Unicode.Backspace.includes(key as any)
       const isEnter = key === Unicode.Enter
       const isArrow = key === Unicode.UpArrow || key === Unicode.DownArrow || key === Unicode.RightArrow || key === Unicode.LeftArrow
 
