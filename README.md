@@ -98,7 +98,74 @@ const name = await coinp.text({ message: "What's your name?" })
 
 ### `coinp.number(options)`
 
-Displays a text input prompt to the user.
+Displays a number input prompt to the user.
+
+**Options:**
+
+- `message` (string): The message to display to the user.
+- `placeholder` (number | undefined): The placeholder text to display in the input field.
+- `defaultValue` (number | undefined): The default value to use if no value is entered.
+- `initialValue` (number | undefined): The initial value to use in the input field.
+- `validate` (function | undefined): A function that validates the user's input.
+- `negative` (boolean | undefined): Whether to allow negative numbers.
+- `decimals` (boolean | undefined): Whether to allow decimal numbers.
+
+**Example:**
+
+```javascript
+const age = await coinp.number({ message: "How old are you?" })
+```
+
+### `coinp.select(options)`
+
+Displays a select input prompt to the user.
+
+**Options:**
+
+- `message` (string): The message to display to the user.
+- `choices` (object[]): An array of objects containing the label and value of each choice.
+- `cursorAt` (string | undefined): The initial cursor position.
+
+**Example:**
+
+```javascript
+const difficulty = await coinp.select({
+  message: "What level difficulty do you want to play?",
+  choices: [
+    { label: "Easy", value: "easy" },
+    { label: "Medium", value: "medium" },
+    { label: "Hard", value: "hard" }
+  ]
+})
+```
+
+### `coinp.checkbox(options)`
+
+Displays a checkbox input prompt to the user.
+
+**Options:**
+
+- `message` (string): The message to display to the user.
+- `choices` (object[]): An array of objects containing the label and value of each choice.
+- `cursorAt` (string | undefined): The initial cursor position.
+- `initialValues` (string[] | undefined): The initial values to select.
+
+**Example:**
+
+```javascript
+const tools = await coinp.checkbox({
+  message: "Do you want to start with some tools?",
+  choices: [
+    { label: "Sword", value: "sword" },
+    { label: "Axe", value: "axe" },
+    { label: "shovel", value: "shovel" }
+  ]
+})
+```
+
+### `coinp.password(options)`
+
+Displays a password input prompt to the user.
 
 **Options:**
 
@@ -111,7 +178,25 @@ Displays a text input prompt to the user.
 **Example:**
 
 ```javascript
-const name = await coinp.text({ message: "What's your name?" })
+const password = await coinp.password({ message: "What's your password?" })
+```
+
+### `coinp.loader()`
+
+Displays a loader animation to indicate ongoing processes.
+
+**Returns:**
+
+- `start(message: string)`: Starts the loader with a message.
+- `end(message: string)`: Ends the loader with a message.
+
+**Example:**
+
+```javascript
+const loader = coinp.loader()
+loader.start("Starting world generation")
+await wait(4000)
+loader.end("World generated succesfully")
 ```
 
 ## Contributing

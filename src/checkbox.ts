@@ -22,7 +22,11 @@ interface SelectChoice<T extends string> {
   value: T
 }
 
-/** The `list` function empowers users to select a single option from a predefined list of choices. */
+/**
+ * The `list` function empowers users to select a single option from a predefined list of choices.
+ *
+ * [API Reference](https://github.com/sercrac07/coinp?tab=readme-ov-file#coinpcheckboxoptions)
+ */
 export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise<T[]> {
   return new Promise(resolve => {
     // Global variables

@@ -20,7 +20,11 @@ interface NumberOptions {
   decimals?: boolean
 }
 
-/** The text function allows for the input of user data. */
+/**
+ * The text function allows for the input of user data.
+ *
+ * [API Reference](https://github.com/sercrac07/coinp?tab=readme-ov-file#coinpnumberoptions)
+ */
 export function number(options: NumberOptions): Promise<number> {
   return new Promise(resolve => {
     // Global variables

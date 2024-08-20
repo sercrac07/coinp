@@ -20,7 +20,11 @@ interface SelectChoice<T extends string> {
   value: T
 }
 
-/** The `list` function empowers users to select a single option from a predefined list of choices. */
+/**
+ * The `list` function empowers users to select a single option from a predefined list of choices.
+ *
+ * [API Reference](https://github.com/sercrac07/coinp?tab=readme-ov-file#coinpselectoptions)
+ */
 export function select<T extends string>(options: SelectOptions<T>): Promise<T> {
   return new Promise(resolve => {
     // Global variables
