@@ -16,7 +16,11 @@ interface TextOptions {
   validate?: (value: string) => string | void
 }
 
-/** The text function allows for the input of user data. */
+/**
+ * The text function allows for the input of user data.
+ *
+ * [API Reference](https://github.com/sercrac07/coinp?tab=readme-ov-file#coinp.text(options))
+ */
 export function text(options: TextOptions): Promise<string> {
   return new Promise(resolve => {
     // Global variables

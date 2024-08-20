@@ -1,9 +1,9 @@
 # Coinp
 
-[![npm version](https://badge.fury.io/js/coinp.svg)](https://badge.fury.io/js/sdet)
+[![npm version](https://badge.fury.io/js/coinp.svg)](https://badge.fury.io/js/coinp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-`coinp` is a lightweight package that provides easy-to-use methods for collecting user input from the command line interface. It offers various input methods such as text, number, select, checkbox, and password, along with additional functionalities like intro, outro, info messages, loader, and downloader.
+`coinp` is a lightweight package that provides easy-to-use methods for collecting user input from the command line interface.
 
 ## Features
 
@@ -12,14 +12,11 @@
 - **Select Input:** Present a list of choices for the user to select from.
 - **Checkbox Input:** Allow the user to select multiple options from a list of choices.
 - **Password Input:** Collect hidden text input (e.g., passwords).
-- **Intro and Outro Messages:** Display introductory and closing messages.
-- **Info Messages:** Display informational messages.
 - **Loader:** Show a loader animation to indicate ongoing processes.
-- **Downloader:** Show a progress bar to track download progress.
 
 ## Installation
 
-You can install the package via npm:
+You can install the package via **npm**:
 
 ```bash
 npm install coinp
@@ -77,6 +74,44 @@ const loader = coinp.loader()
 loader.start("Starting world generation")
 await wait(4000)
 loader.end("World generated succesfully")
+```
+
+## API Reference
+
+### `coinp.text(options)`
+
+Displays a text input prompt to the user.
+
+**Options:**
+
+- `message` (string): The message to display to the user.
+- `placeholder` (string | undefined): The placeholder text to display in the input field.
+- `defaultValue` (string | undefined): The default value to use if no value is entered.
+- `initialValue` (string | undefined): The initial value to use in the input field.
+- `validate` (function | undefined): A function that validates the user's input.
+
+**Example:**
+
+```javascript
+const name = await coinp.text({ message: "What's your name?" })
+```
+
+### `coinp.number(options)`
+
+Displays a text input prompt to the user.
+
+**Options:**
+
+- `message` (string): The message to display to the user.
+- `placeholder` (string | undefined): The placeholder text to display in the input field.
+- `defaultValue` (string | undefined): The default value to use if no value is entered.
+- `initialValue` (string | undefined): The initial value to use in the input field.
+- `validate` (function | undefined): A function that validates the user's input.
+
+**Example:**
+
+```javascript
+const name = await coinp.text({ message: "What's your name?" })
 ```
 
 ## Contributing
