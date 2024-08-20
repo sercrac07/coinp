@@ -97,6 +97,7 @@ export function number(options: NumberOptions): Promise<number> {
       const controlBackspaceKey = key === Unicode.ControlBackspace
       const tabKey = key === Unicode.Tab
       const validKey = "0123456789".includes(key)
+      const arrowKey = key === Unicode.UpArrow || key === Unicode.DownArrow || key === Unicode.LeftArrow || key === Unicode.RightArrow
 
       // Checks the key pressed
       if (exitKey) {
@@ -119,6 +120,8 @@ export function number(options: NumberOptions): Promise<number> {
       } else if (tabKey) {
         if (userInput.length === 0 && options.placeholder !== undefined) userInput = options.placeholder.toString()
         updateConsole()
+      } else if (arrowKey) {
+        return
       } else if (validKey) {
         userInput += key
         updateConsole()

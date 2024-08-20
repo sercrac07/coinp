@@ -65,7 +65,7 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
 
       const filteredAndSlicedChoices = filteredChoices.slice(slicePositions[0], slicePositions[1])
 
-      if (currentPosition > filteredChoices.length - 1) currentPosition = 0
+      if (currentPosition > filteredChoices.length - 1 || currentPosition < 0) currentPosition = 0
 
       const symbol = type === "enter" ? Symbols.Answered : Symbols.Unanswered
       const color = type === "enter" ? Colors.FgGreen : Colors.FgBlue
@@ -77,7 +77,7 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
 
       if (type !== "intro") {
         // Clean the console depending on the message line height
-        if (lastJump === -0) {
+        if (lastJump === 0) {
           cursorTo(stdout, 0)
           clearLine(stdout, 0)
         } else {

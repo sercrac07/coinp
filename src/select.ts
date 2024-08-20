@@ -53,7 +53,7 @@ export function select<T extends string>(options: SelectOptions<T>): Promise<T> 
 
       const filteredAndSlicedChoices = filteredChoices.slice(slicePositions[0], slicePositions[1])
 
-      if (currentPosition > filteredChoices.length - 1) currentPosition = 0
+      if (currentPosition > filteredChoices.length - 1 || currentPosition < 0) currentPosition = 0
 
       const symbol = type === "enter" ? Symbols.Answered : Symbols.Unanswered
       const color = type === "enter" ? Colors.FgGreen : Colors.FgBlue

@@ -94,6 +94,7 @@ export function password(options: PasswordOptions): Promise<string> {
       const controlBackspaceKey = key === Unicode.ControlBackspace
       const tabKey = key === Unicode.Tab
       const altSKey = key === Unicode.AltS
+      const arrowKey = key === Unicode.UpArrow || key === Unicode.DownArrow || key === Unicode.LeftArrow || key === Unicode.RightArrow
 
       // Checks the key pressed
       if (exitKey) {
@@ -119,6 +120,8 @@ export function password(options: PasswordOptions): Promise<string> {
       } else if (altSKey) {
         showPassword = !showPassword
         updateConsole()
+      } else if (arrowKey) {
+        return
       } else {
         userInput += key
         updateConsole()

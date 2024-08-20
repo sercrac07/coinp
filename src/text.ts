@@ -89,6 +89,7 @@ export function text(options: TextOptions): Promise<string> {
       const backspaceKey = Unicode.Backspace.includes(key as any)
       const controlBackspaceKey = key === Unicode.ControlBackspace
       const tabKey = key === Unicode.Tab
+      const arrowKey = key === Unicode.UpArrow || key === Unicode.DownArrow || key === Unicode.LeftArrow || key === Unicode.RightArrow
 
       // Checks the key pressed
       if (exitKey) {
@@ -111,6 +112,8 @@ export function text(options: TextOptions): Promise<string> {
       } else if (tabKey) {
         if (userInput.length === 0 && options.placeholder !== undefined) userInput = options.placeholder
         updateConsole()
+      } else if (arrowKey) {
+        return
       } else {
         userInput += key
         updateConsole()
