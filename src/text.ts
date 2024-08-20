@@ -1,187 +1,122 @@
-import { exit, stdin, stdout } from 'node:process'
-import { clearScreenDown, moveCursor, cursorTo } from 'node:readline'
-
-import { Colors, Symbols, Unicode } from './lib/consts'
+import { exit, stdin, stdout } from "node:process"
+import { clearScreenDown, moveCursor, cursorTo, clearLine } from "node:readline"
+import { Colors, Symbols, Unicode } from "./lib/consts"
+import { clearString, splitArray, splitHeight } from "./lib/utils"
 
 interface TextOptions {
-  /** Message to display to the user. */
+  /** A message to display to the user. */
   message: string
-  /** The initial value. */
-  initialValue?: string
-  /** An invisible message, displayed only when there is no value. */
+  /** A preview message to display to the user. */
   placeholder?: string
   /** A default value when no value has been entered. */
   defaultValue?: string
+  /** A initial value. */
+  initialValue?: string
   /** A function that allows verifying the value entered by the user before submitting it. */
-  verify?: (value: string) => string | undefined | void
-  /** A function that runs when the operation is canceled. */
-  onCancel?: () => void
+  validate?: (value: string) => string | void
 }
 
-/** The `text` function enables the retrieval of user input in text format. This feature provides the ability to display default values and perform real-time validation on the input provided by the user. */
+/** The text function allows for the input of user data. */
 export function text(options: TextOptions): Promise<string> {
-  return new Promise<string>(resolve => {
+  return new Promise(resolve => {
+    // Global variables
+    const widthRegex = new RegExp(`.{1,${stdout.columns}}`, "g")
+    let lastJump = 0
+    let lastError: [boolean, number] = [false, 0]
+
+    // Reading stdin
     stdin.resume()
-    stdin.setEncoding('utf-8')
+    stdin.setEncoding("utf-8")
     stdin.setRawMode(true)
 
-    let userInput = options.initialValue ?? ''
-    const regex = new RegExp(`.{1,${stdout.columns - 2}}`, 'g')
+    // Get the initial message
+    let userInput = options.initialValue ?? ""
+    let showMessage = ""
 
-    const splitedTitle = options.message.match(regex)!
-    const splitedUserInput = userInput.match(regex) ?? ['']
-
-    if (splitedTitle.length + 2 > stdout.rows) {
-      stdout.write(`You need at least ${splitedTitle.length + 2} rows to continue\n`)
-      exit(1)
-    }
-
-    if (stdout.columns <= 8) {
-      stdout.write('You need at least 9 columns to continue\n')
-      exit(1)
-    }
-
-    let splitedPlaceholder: false | string[] = false
-
-    if (options.placeholder) splitedPlaceholder = options.placeholder.match(regex) ?? ['']
-
-    let toShow: string[]
-    let is: 'placeholder' | 'input'
-
-    if (userInput.length === 0 && options.placeholder) {
-      toShow = splitedPlaceholder as string[]
-      is = 'placeholder'
-    } else {
-      toShow = splitedUserInput
-      is = 'input'
-    }
-
-    if (toShow.length > stdout.rows - splitedTitle.length - 1) {
-      toShow = toShow.slice((stdout.rows - splitedTitle.length - 1) * -1)
-      toShow[0] = toShow[0].replace(/^.{3}/g, '...')
-    }
-
-    stdout.write(
-      `${splitedTitle
-        .map((title, index) => {
-          if (index === 0) return `${Colors.FgBlue + Symbols.Unanswered + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
-          else return `${Colors.FgBlue + Symbols.LineVertical + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
-        })
-        .join('\n')}\n`
-    )
-
-    stdout.write(`${toShow.map(input => `${Colors.FgBlue + Symbols.LineVertical + Colors.Reset} ${is === 'placeholder' ? Colors.Dim : ''}${input + Colors.Reset}`).join('\n')}\n${Colors.FgBlue + Symbols.BottomLeftCorner + Colors.Reset} `)
-
-    if (is === 'input') moveCursor(stdout, 0, -1)
-    else moveCursor(stdout, 0, toShow.length * -1)
-
-    cursorTo(stdout, splitedUserInput[splitedUserInput.length - 1].length + 2)
-
-    const listener = (data: Buffer) => {
-      const key = data.toString()
-
-      const isCancel = key === Unicode.ControlC || key === Unicode.Esc
-      const isDel = Unicode.Backspace.includes(key as any)
-      const isEnter = key === Unicode.Enter
-      const isArrow = key === Unicode.UpArrow || key === Unicode.DownArrow || key === Unicode.RightArrow || key === Unicode.LeftArrow
-
-      const updateConsole = (type: 'add' | 'del' | 'enter' | 'cancel' | 'err', err?: string) => {
-        const splitedContent = userInput.match(regex) ?? ['']
-
-        if (userInput.length === 0 && options.placeholder) {
-          toShow = splitedPlaceholder as string[]
-          is = 'placeholder'
-        } else {
-          toShow = splitedContent
-          is = 'input'
-        }
-
-        if (toShow.length > stdout.rows - splitedTitle.length - 1) {
-          toShow = toShow.slice((stdout.rows - splitedTitle.length - 1) * -1)
-          toShow[0] = toShow[0].replace(/^.{3}/g, '...')
-        }
-
-        let extraJump = 0
-
-        if (type === 'add') {
-          if (toShow.length !== 1 && toShow[toShow.length - 1].length === 1) extraJump--
-        } else if (type === 'del') {
-          if (toShow[toShow.length - 1].length > stdout.columns - 3) extraJump++
-        }
-
-        const color = type === 'enter' ? Colors.FgGreen : type === 'cancel' ? Colors.FgRed : type === 'err' ? Colors.FgYellow : Colors.FgBlue
-        const extraColor = type === 'enter' ? Colors.Bright + Colors.FgGreen : type === 'cancel' ? Colors.FgRed : ''
-        const symbol = type === 'enter' ? Symbols.Answered : type === 'cancel' || type === 'err' ? Symbols.Error : Symbols.Unanswered
-        const line = type === 'enter' ? Symbols.LineVertical : Symbols.BottomLeftCorner
-
-        if ((type === 'enter' || type === 'cancel') && is === 'placeholder') toShow = ['']
-
-        moveCursor(stdout, 0, (toShow.length - 1 + extraJump + splitedTitle.length) * -1)
-        cursorTo(stdout, 0)
-        clearScreenDown(stdout)
-
-        stdout.write(
-          `${splitedTitle
-            .map((title, index) => {
-              if (index === 0) return `${color + symbol + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
-              else return `${color + Symbols.LineVertical + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
-            })
-            .join('\n')}\n`
-        )
-        stdout.write(`${toShow.map(input => `${color + Symbols.LineVertical + Colors.Reset} ${is === 'placeholder' ? Colors.Dim : extraColor}${input + Colors.Reset}`).join('\n')}\n${color + line} `)
-
-        if (type === 'cancel' && !options.onCancel) stdout.write('Operation cancelled')
-        else if (type === 'err' && err) {
-          const errSplited = err.match(regex)!
-          let showErr = ''
-
-          if (errSplited.length > 1) showErr = errSplited[0].slice(0, -3) + '...'
-          else showErr = errSplited[0]
-
-          stdout.write(showErr)
-        }
-
-        stdout.write(Colors.Reset)
-
-        if (is === 'input') moveCursor(stdout, 0, -1)
-        else moveCursor(stdout, 0, toShow.length * -1)
-
-        cursorTo(stdout, splitedContent[splitedContent.length - 1].length + 2)
+    // Update the console with the user input
+    const updateConsole = (type: "enter" | "input" | "intro" | "err" = "input", extra?: string) => {
+      if (lastError[0]) {
+        moveCursor(stdout, 0, lastError[1] * -1)
+        lastError = [false, 0]
       }
 
-      if (isCancel) {
-        updateConsole('cancel')
-        moveCursor(stdout, 0, 1)
-        if (options.onCancel) {
-          stdin.removeListener('data', listener)
-          stdin.pause()
-          cursorTo(stdout, 2)
-          options.onCancel()
-        } else {
-          stdout.write('\n')
-          process.exit(0)
-        }
-      } else if (isEnter) {
-        if (options.verify && typeof options.verify(userInput) === 'string') return updateConsole('err', options.verify(userInput)!)
+      const symbol = type === "enter" ? Symbols.Answered : type === "err" ? Symbols.Error : Symbols.Unanswered
+      const color = type === "enter" ? Colors.FgGreen : type === "err" ? Colors.FgYellow : Colors.FgBlue
+      const inputColor = type === "enter" ? Colors.Dim + Colors.FgGreen : ""
 
+      if (options.placeholder !== undefined && userInput.length === 0 && type !== "enter")
+        showMessage = `${color + symbol + Colors.Reset} ${Colors.Bright + options.message + Colors.Reset} ${Colors.Dim + ">>" + Colors.Reset} ${Colors.Dim + options.placeholder + Colors.Reset}`
+      else showMessage = `${color + symbol + Colors.Reset} ${Colors.Bright + options.message + Colors.Reset} ${Colors.Dim + ">>" + Colors.Reset} ${inputColor + userInput + Colors.Reset}`
+
+      const splitedMessage = splitHeight(clearString(showMessage), showMessage, stdout.columns)
+      const displayText = splitArray(splitedMessage.ansi, stdout.rows, Math.ceil((clearString(options.message).length + 6) / stdout.columns))
+
+      if (type !== "intro") {
+        // Clean the console depending on the message line height
+        if (splitedMessage.normal.length === 1 && lastJump === 0) {
+          cursorTo(stdout, 0)
+          clearLine(stdout, 0)
+        } else {
+          moveCursor(stdout, 0, lastJump)
+          cursorTo(stdout, 0)
+          clearScreenDown(stdout)
+        }
+      }
+
+      stdout.write(displayText.join(""))
+
+      lastJump = (splitedMessage.normal.length - 1) * -1
+
+      if (type === "err") {
+        stdout.write("\n")
+        stdout.write(Colors.FgYellow + extra + Colors.Reset)
+        const splitedExtra = [...extra!.match(widthRegex)!]
+        const extraJump = splitedExtra.length * -1
+        lastError = [true, extraJump]
+        moveCursor(stdout, 0, extraJump)
+        cursorTo(stdout, splitedMessage.normal.at(-1)!.length)
+        lastJump += splitedExtra.length * -1
+      }
+    }
+
+    updateConsole("intro")
+
+    const dataListener = (data: Buffer) => {
+      // Get the key pressed
+      const key = data.toString()
+      const exitKey = key === Unicode.ControlC || key === Unicode.Esc
+      const enterKey = key === Unicode.Enter
+      const backspaceKey = Unicode.Backspace.includes(key as any)
+      const controlBackspaceKey = key === Unicode.ControlBackspace
+      const tabKey = key === Unicode.Tab
+
+      // Checks the key pressed
+      if (exitKey) {
+        stdin.removeListener("data", dataListener)
+        exit()
+      } else if (backspaceKey) {
+        userInput = userInput.slice(0, -1)
+        updateConsole()
+      } else if (controlBackspaceKey) {
+        userInput = userInput.split(" ").slice(0, -1).join(" ")
+        updateConsole()
+      } else if (enterKey) {
         if (userInput.length === 0 && options.defaultValue !== undefined) userInput = options.defaultValue
-        updateConsole('enter')
-        moveCursor(stdout, 0, 1)
-        stdout.write('\n')
-        stdin.removeListener('data', listener)
+        if (options.validate !== undefined && typeof options.validate(userInput) === "string") return updateConsole("err", options.validate(userInput)!)
+        updateConsole("enter")
+        stdout.write("\n")
+        stdin.removeListener("data", dataListener)
         stdin.pause()
         resolve(userInput)
-      } else if (isDel) {
-        userInput = userInput.slice(0, -1)
-        updateConsole('del')
+      } else if (tabKey) {
+        if (userInput.length === 0 && options.placeholder !== undefined) userInput = options.placeholder
+        updateConsole()
       } else {
-        if (isArrow) return
-
         userInput += key
-        updateConsole('add')
+        updateConsole()
       }
     }
 
-    stdin.on('data', listener)
+    stdin.on("data", dataListener)
   })
 }

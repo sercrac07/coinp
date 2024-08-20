@@ -1,222 +1,196 @@
-import { exit, stdin, stdout } from 'node:process'
-import { clearScreenDown, moveCursor, cursorTo } from 'node:readline'
+import { exit, stdin, stdout } from "node:process"
+import { clearScreenDown, moveCursor, cursorTo, clearLine } from "node:readline"
 
-import { Colors, Symbols, Unicode } from './lib/consts'
+import { Colors, Symbols, Unicode } from "./lib/consts"
+import { clearString, splitArray, splitHeight, splitWidth } from "./lib/utils"
 
 interface CheckboxOptions<T extends string> {
   /** Message to display to the user. */
   message: string
   /** All the options available for the user to choose from. */
-  choices: CheckboxChoice<T>[]
-  /** The initial cursor postion. */
+  choices: SelectChoice<T>[]
+  /** The initial cursor position. */
   cursorAt?: NoInfer<T>
   /** All initial values that will appear as selected. */
   initialValues?: NoInfer<T>[]
-  /** A function that allows verifying the value entered by the user before submitting it. */
-  verify?: (value: T[]) => string | undefined | void
-  /** A function that runs when the operation is canceled. */
-  onCancel?: () => void
 }
 
-interface CheckboxChoice<T extends string> {
+interface SelectChoice<T extends string> {
   /** Text to display. */
   label: string
-  /** The return value. */
+  /** The return value */
   value: T
-  /** Displays a message when the user hovers over an option. */
-  hint?: string
 }
 
-/** The `checkbox` function provides users with the capability to select multiple options simultaneously from a predefined list of choices. */
+/** The `list` function empowers users to select a single option from a predefined list of choices. */
 export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise<T[]> {
-  return new Promise<T[]>(resolve => {
-    stdin.resume()
-    stdin.setEncoding('utf-8')
-    stdin.setRawMode(true)
+  return new Promise(resolve => {
+    // Global variables
+    const thisChoices = options.choices.map(choice => ({ ...choice, selected: false }))
+    let lastJump = 0
+    const splitedTitle = splitHeight(
+      clearString(`${Colors.FgBlue + Symbols.Unanswered + Colors.Reset} ${Colors.Bright + options.message + Colors.Reset} ${Colors.Dim + ">>" + Colors.Reset}    `),
+      `${Colors.FgBlue + Symbols.Unanswered + Colors.Reset} ${Colors.Bright + options.message + Colors.Reset} ${Colors.Dim + ">>" + Colors.Reset}    `,
+      stdout.columns
+    )
+    const canBeShown = stdout.rows - splitedTitle.normal.length
+    let slicePositions = [0, canBeShown]
 
-    let userCurrent = options.cursorAt && options.choices.findIndex(choice => choice.value === options.cursorAt) !== -1 ? options.choices.findIndex(choice => choice.value === options.cursorAt) : 0
-    const regex = new RegExp(`.{1,${stdout.columns - 2}}`, 'g')
-    const choiceRegex = new RegExp(`.{1,${stdout.columns - 4}}`, 'g')
-
-    const userSelection: T[] = []
-
+    // Default values
     if (options.initialValues) {
       options.initialValues.forEach(value => {
-        if (userSelection.includes(value)) return
-        userSelection.push(value)
+        const choice = thisChoices.find(choice => choice.value === value)
+        if (!choice) return
+        choice.selected = true
       })
     }
 
-    const splitedTitle = options.message.match(regex)!
-    const showLines = options.choices.map(choice => choice.label).slice((stdout.rows - splitedTitle.length - 1) * -1)
+    // Reading stdin
+    stdin.resume()
+    stdin.setEncoding("utf-8")
+    stdin.setRawMode(true)
 
-    if (splitedTitle.length + 1 > stdout.rows) {
-      stdout.write(`You need at least ${splitedTitle.length + 2} rows to continue\n`)
-      exit(1)
-    }
+    // Get the initial message
+    let userInput = ""
+    let showMessage = ""
+    let currentPosition = thisChoices.findIndex(choice => choice.value === options.cursorAt) === -1 ? 0 : options.choices.findIndex(choice => choice.value === options.cursorAt)
 
-    if (stdout.columns <= 8) {
-      stdout.write('You need at least 9 columns to continue\n')
-      exit(1)
-    }
+    // Get all the choices that match the search
+    let filteredChoices = thisChoices.filter(choice => choice.label.toLowerCase().split(" ").join("").includes(userInput.toLowerCase().split(" ").join("")))
 
-    let showing: [number, number] = [0, showLines.length]
+    // Update the console with the user input
+    const updateConsole = (type: "enter" | "input" | "intro" = "input", extra?: string) => {
+      filteredChoices = thisChoices.filter(choice => choice.label.toLowerCase().split(" ").join("").includes(userInput.toLowerCase().split(" ").join("")))
+      if (slicePositions[1] > filteredChoices.length) slicePositions = [0, canBeShown]
 
-    if (userCurrent !== 0) {
-      const dif = showLines.length
+      const filteredAndSlicedChoices = filteredChoices.slice(slicePositions[0], slicePositions[1])
 
-      if (options.choices.length === userCurrent + 1) showing = [options.choices.length - dif, options.choices.length]
-      else if (userCurrent + 1 > options.choices.length - dif) showing = [options.choices.length - dif, options.choices.length]
-      else showing = [userCurrent, userCurrent + dif]
-    }
+      if (currentPosition > filteredChoices.length - 1) currentPosition = 0
 
-    let showOptions = options.choices.map(choice => choice).slice(showing[0], showing[1])
-    let linesOptions = showOptions.map(choice => ({ content: choice.label.match(choiceRegex)!, selected: userSelection.includes(choice.value), hint: choice.hint }))
+      const symbol = type === "enter" ? Symbols.Answered : Symbols.Unanswered
+      const color = type === "enter" ? Colors.FgGreen : Colors.FgBlue
 
-    stdout.write(
-      `${
-        Unicode.HideCursor +
-        splitedTitle
-          .map((title, index) => {
-            if (index === 0) return `${Colors.FgBlue + Symbols.Unanswered + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
-            else return `${Colors.FgBlue + Symbols.LineVertical + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
-          })
-          .join('\n')
-      }\n`
-    )
+      showMessage = `${color + symbol + Colors.Reset} ${Colors.Bright + options.message + Colors.Reset} ${Colors.Dim + ">>" + Colors.Reset}    `
 
-    stdout.write(
-      `${linesOptions
-        .map((line, index) => {
-          const canHint = line.hint !== undefined && index + showing[0] === userCurrent
-          const diffHint = canHint ? stdout.columns - (line.content[0].length + 4) - (line.hint!.length + 3) : 0
-          if (line.content.length !== 1) return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0].slice(0, -3)}...${Colors.Reset}`
-          return `${Colors.FgBlue + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${`${line.content[0] + Colors.Reset + Colors.Dim}${canHint ? ` (${line.hint!})`.slice(0, diffHint < 0 ? diffHint : undefined) : ''}` + Colors.Reset}`
-        })
-        .join('\n')}\n${Colors.FgBlue + Symbols.BottomLeftCorner} ${options.choices.length > showOptions.length && showing[0] !== 0 ? `${Symbols.TopArrow} ` : ''}${options.choices.length > showOptions.length && showing[1] !== options.choices.length ? `${Symbols.DownArrow} ` : ''}${Colors.Reset}`
-    )
+      const titleLength = Math.ceil(clearString(showMessage).length / stdout.columns)
+      const displayText = splitWidth(userInput, stdout.columns - clearString(splitedTitle.normal.at(-1)!.slice(0, -3)).length)
 
-    const listener = (data: Buffer) => {
-      const key = data.toString()
-
-      const isCancel = key === Unicode.ControlC || key === Unicode.Esc
-      const isEnter = key === Unicode.Enter
-      const isSpace = key === Unicode.Spacebar
-      const isUpArrow = key === Unicode.UpArrow
-      const isDownArrow = key === Unicode.DownArrow
-
-      const updateConsole = (type: 'arrow' | 'enter' | 'cancel' | 'err', err?: string) => {
-        const color = type === 'cancel' ? Colors.FgRed : type === 'err' ? Colors.FgYellow : Colors.FgBlue
-        const symbol = type === 'arrow' ? Symbols.Unanswered : Symbols.Error
-
-        moveCursor(stdout, 0, (splitedTitle.length + options.choices.length) * -1)
-        cursorTo(stdout, 0)
-        clearScreenDown(stdout)
-
-        if (type === 'enter') {
-          return stdout.write(
-            `${
-              Unicode.ShowCursor +
-              splitedTitle
-                .map((title, index) => {
-                  if (index === 0) return `${Colors.FgGreen + Symbols.Answered + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
-                  else return `${Colors.FgGreen + Symbols.LineVertical + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
-                })
-                .join('\n')
-            }\n${Colors.FgGreen + Symbols.LineVertical} ${
-              Colors.Bright +
-              options.choices
-                .filter(choice => userSelection.includes(choice.value))
-                .map(choice => choice.label)
-                .join(', ') +
-              Colors.Reset
-            }\n${Colors.FgGreen + Symbols.LineVertical + Colors.Reset + Unicode.ShowCursor}`
-          )
+      if (type !== "intro") {
+        // Clean the console depending on the message line height
+        if (lastJump === -0) {
+          cursorTo(stdout, 0)
+          clearLine(stdout, 0)
+        } else {
+          moveCursor(stdout, 0, lastJump)
+          cursorTo(stdout, 0)
+          clearScreenDown(stdout)
         }
+      }
 
-        showOptions = options.choices.map(choice => choice).slice(showing[0], showing[1])
-        linesOptions = showOptions.map(choice => ({ content: choice.label.match(choiceRegex)!, selected: userSelection.includes(choice.value), hint: choice.hint }))
-
+      if (type === "enter")
         stdout.write(
           `${
-            Unicode.HideCursor +
-            splitedTitle
-              .map((title, index) => {
-                if (index === 0) return `${color + symbol + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
-                else return `${color + Symbols.LineVertical + Colors.Reset} ${Colors.Bright + title + Colors.Reset}`
-              })
-              .join('\n')
-          }\n`
+            Unicode.ShowCursor +
+            showMessage.slice(0, -3) +
+            Colors.Dim +
+            Colors.FgGreen +
+            thisChoices
+              .filter(choice => choice.selected)
+              .map(choice => choice.label)
+              .join(", ") +
+            Colors.Reset
+          }`
         )
+      else stdout.write(`${Unicode.HideCursor + splitedTitle.ansi.join("\n").slice(0, -3) + displayText}${filteredChoices.length ? "\n" : ""}`)
 
+      // Display the choices only if the user has not selected an option yet
+      if (type !== "enter")
         stdout.write(
-          `${linesOptions
-            .map((line, index) => {
-              const canHint = line.hint !== undefined && index + showing[0] === userCurrent
-              const diffHint = canHint ? stdout.columns - (line.content[0].length + 4) - (line.hint!.length + 3) : 0
-              if (line.content.length !== 1) return `${color + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${line.content[0].slice(0, -3)}...${Colors.Reset}`
-              return `${color + Symbols.LineVertical} ${index + showing[0] === userCurrent ? '' : Colors.Reset}${line.selected ? Symbols.Selected : Symbols.Unselected} ${index + showing[0] === userCurrent ? Colors.Underscore : ''}${`${line.content[0] + Colors.Reset + Colors.Dim}${canHint ? ` (${line.hint!})`.slice(0, diffHint < 0 ? diffHint : undefined) : ''}` + Colors.Reset}`
+          filteredAndSlicedChoices
+            .map((choice, index) => {
+              const thisIndex = index + slicePositions[0]
+              const isSelected = currentPosition === thisIndex
+              const isFirst = index === 0
+              const isLast = index === filteredAndSlicedChoices.length - 1
+              const isDiff = filteredAndSlicedChoices.length !== filteredChoices.length
+              return `${isSelected ? Colors.FgBlue + Symbols.RightArrow + Colors.Reset : " "} ${
+                isDiff && isFirst ? Colors.FgBlue + Symbols.TopArrow + Colors.Reset : isDiff && isLast ? Colors.FgBlue + Symbols.DownArrow + Colors.Reset : " "
+              } ${choice.selected ? Symbols.Selected : Symbols.Unselected} ${isSelected ? Colors.FgBlue + Colors.Underscore : ""}${choice.label + Colors.Reset}`
             })
-            .join('\n')}\n${color + Symbols.BottomLeftCorner} ${options.choices.length > showOptions.length && showing[0] !== 0 ? `${Symbols.TopArrow} ` : ''}${options.choices.length > showOptions.length && showing[1] !== options.choices.length ? `${Symbols.DownArrow} ` : ''}`
+            .join("\n")
         )
 
-        if (type === 'cancel') {
-          stdout.write(Unicode.ShowCursor)
-          if (!options.onCancel) stdout.write('Operation cancelled')
-        } else if (type === 'err' && err) {
-          const errSplited = err.match(regex)!
-          let showErr = ''
+      lastJump = (filteredAndSlicedChoices.length + titleLength - 1) * -1
+    }
 
-          if (errSplited.length > 1) showErr = errSplited[0].slice(0, -3) + '...'
-          else showErr = errSplited[0]
+    updateConsole("intro")
 
-          stdout.write(showErr)
-        }
+    const dataListener = (data: Buffer) => {
+      // Get the key pressed
+      const key = data.toString()
+      const exitKey = key === Unicode.ControlC || key === Unicode.Esc
+      const enterKey = key === Unicode.Enter
+      const backspaceKey = Unicode.Backspace.includes(key as any)
+      const controlBackspaceKey = key === Unicode.ControlBackspace
+      const arrowKey = key === Unicode.UpArrow || key === Unicode.DownArrow || key === Unicode.LeftArrow || key === Unicode.RightArrow
 
-        stdout.write(Colors.Reset)
-      }
-
-      if (isCancel) {
-        updateConsole('cancel')
-        moveCursor(stdout, 0, 1)
-        if (options.onCancel) {
-          stdin.removeListener('data', listener)
-          stdin.pause()
-          cursorTo(stdout, 2)
-          options.onCancel()
-        } else {
-          stdout.write('\n')
-          process.exit(0)
-        }
-      } else if (isEnter) {
-        if (options.verify && typeof options.verify(userSelection) === 'string') return updateConsole('err', options.verify(userSelection)!)
-
-        updateConsole('enter')
-        stdout.write('\n')
-        stdin.removeListener('data', listener)
+      // Checks the key pressed
+      if (exitKey) {
+        stdout.write(Unicode.ShowCursor)
+        stdin.removeListener("data", dataListener)
+        exit()
+      } else if (backspaceKey) {
+        userInput = userInput.slice(0, -1)
+        updateConsole()
+      } else if (controlBackspaceKey) {
+        userInput = userInput.split(" ").slice(0, -1).join(" ")
+        updateConsole()
+      } else if (enterKey) {
+        updateConsole("enter")
+        stdout.write("\n")
+        stdin.removeListener("data", dataListener)
         stdin.pause()
-        resolve(userSelection)
-      } else if (isUpArrow) {
-        if (userCurrent !== 0) userCurrent--
-        if (showing[0] !== 0 && userCurrent === showing[0] - 1) {
-          showing[0]--
-          showing[1]--
-        }
-        updateConsole('arrow')
-      } else if (isDownArrow) {
-        if (userCurrent !== options.choices.length - 1) userCurrent++
-        if (showing[1] !== options.choices.length && userCurrent === showing[1]) {
-          showing[0]++
-          showing[1]++
-        }
-        updateConsole('arrow')
-      } else if (isSpace) {
-        if (userSelection.includes(options.choices[userCurrent].value)) userSelection.splice(userSelection.indexOf(options.choices[userCurrent].value), 1)
-        else userSelection.push(options.choices[userCurrent].value)
-        updateConsole('arrow')
+        resolve(thisChoices.filter(choice => choice.selected).map(choice => choice.value))
+      } else if (arrowKey) {
+        if (key === Unicode.UpArrow) {
+          if (currentPosition === 0) {
+            currentPosition = filteredChoices.length - 1
+            if (canBeShown >= filteredChoices.length) return updateConsole()
+            slicePositions = [filteredChoices.length - canBeShown, filteredChoices.length]
+          } else currentPosition--
+          if (canBeShown >= filteredChoices.length) return updateConsole()
+          if (currentPosition < slicePositions[0]) {
+            if (currentPosition === filteredChoices.length - 1) return updateConsole()
+            slicePositions[0]--
+            slicePositions[1]--
+          }
+        } else if (key === Unicode.DownArrow) {
+          if (currentPosition === filteredChoices.length - 1) {
+            currentPosition = 0
+            slicePositions = [0, canBeShown]
+          } else currentPosition++
+          if (canBeShown >= filteredChoices.length) return updateConsole()
+          if (currentPosition >= slicePositions[1]) {
+            if (currentPosition === filteredChoices.length) return updateConsole()
+            slicePositions[0]++
+            slicePositions[1]++
+          }
+        } else if (key === Unicode.LeftArrow) currentPosition = 0
+        else if (key === Unicode.RightArrow) currentPosition = filteredChoices.length - 1
+        updateConsole()
+      } else if (key === " ") {
+        const choice = thisChoices.find(choice => {
+          const ch = filteredChoices.at(currentPosition)!
+          return choice.value === ch.value
+        })!
+        choice.selected = !choice.selected
+        updateConsole()
+      } else {
+        userInput += key
+        updateConsole()
       }
     }
 
-    stdin.on('data', listener)
+    stdin.on("data", dataListener)
   })
 }
