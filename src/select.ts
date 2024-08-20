@@ -65,7 +65,7 @@ export function select<T extends string>(options: SelectOptions<T>): Promise<T> 
 
       if (type !== "intro") {
         // Clean the console depending on the message line height
-        if (lastJump === -0) {
+        if (lastJump === 0) {
           cursorTo(stdout, 0)
           clearLine(stdout, 0)
         } else {
