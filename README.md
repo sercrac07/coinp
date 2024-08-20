@@ -28,74 +28,55 @@ npm install coinp
 ## Usage
 
 ```javascript
-import coinp from 'coinp'
+import coinp from "coinp"
 
-const wait = (ms: number) => new Promise(res => setTimeout(res, ms))
-
-coinp.intro('Start your adventure', 'Example of coinp usage')
+const wait = ms => new Promise(res => setTimeout(res, ms))
 
 const username = await coinp.text({
-  message: 'Whats your username?',
-  placeholder: 'sercrac07',
-  verify(value) {
-    if (!Boolean(value)) return 'You must provide a username'
-  },
+  message: "Whats your username?",
+  placeholder: "sercrac07",
+  validate(value) {
+    if (!Boolean(value)) return "You must provide a username"
+  }
 })
 
 const age = await coinp.number({
   message: `Hello ${username}, how old are you?`,
   placeholder: 18,
-  verify(value) {
-    if (value > 100 || value < 1) return 'You must provide a valid age'
-  },
+  validate(value) {
+    if (value > 100 || value < 1) return "You must provide a valid age"
+  }
 })
 
 const password = await coinp.password({
   message: "What's your account password?",
-  verify(value) {
-    if (!Boolean(value)) return 'You must provide a password'
-  },
+  validate(value) {
+    if (!Boolean(value)) return "You must provide a password"
+  }
 })
 
-coinp.info({ title: 'Logged as guest', message: [`User "${username}" with password "${password}" was not found`], type: 'error' })
-
 const difficulty = await coinp.select({
-  message: 'What level difficulty do you want to play?',
+  message: "What level difficulty do you want to play?",
   choices: [
-    { label: 'Easy', value: 'easy' },
-    { label: 'Medium', value: 'medium', hint: 'recommended' },
-    { label: 'Hard', value: 'hard' },
-  ],
+    { label: "Easy", value: "easy" },
+    { label: "Medium", value: "medium" },
+    { label: "Hard", value: "hard" }
+  ]
 })
 
 const tools = await coinp.checkbox({
-  message: 'Do you want to start with some tools?',
+  message: "Do you want to start with some tools?",
   choices: [
-    { label: 'Sword', value: 'sword', hint: `Too ${age > 18 ? 'old' : 'young'} for a sword` },
-    { label: 'Axe', value: 'axe' },
-    { label: 'shovel', value: 'shovel' },
-  ],
+    { label: "Sword", value: "sword" },
+    { label: "Axe", value: "axe" },
+    { label: "shovel", value: "shovel" }
+  ]
 })
 
 const loader = coinp.loader()
-loader.start('Starting world generation')
+loader.start("Starting world generation")
 await wait(4000)
-loader.end('World generated succesfully')
-
-if (tools.length !== 0) {
-  const downloader = coinp.downloader()
-  downloader.start('Giving starter tools to the user')
-
-  for (let i = 0; i < tools.length; i++) {
-    let sum = 100 / tools.length
-    await wait(2000)
-    downloader.update(sum * (i + 1))
-  }
-
-  downloader.end('Tools given succesfully')
-}
-
-coinp.outro(`Adventure started in ${difficulty} mode!`, 'Thanks for using coinp')
+loader.end("World generated succesfully")
 ```
 
 ## Contributing
