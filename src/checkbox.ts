@@ -2,7 +2,7 @@ import { exit, stdin, stdout } from "node:process"
 import { clearScreenDown, moveCursor, cursorTo, clearLine } from "node:readline"
 
 import { Colors, Symbols, Unicode } from "./lib/consts"
-import { clearString, splitArray, splitHeight, splitWidth } from "./lib/utils"
+import { clearString, splitHeight, splitWidth } from "./lib/utils"
 
 interface CheckboxOptions<T extends string> {
   /** Message to display to the user. */
@@ -63,7 +63,7 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
     let filteredChoices = thisChoices.filter(choice => choice.label.toLowerCase().split(" ").join("").includes(userInput.toLowerCase().split(" ").join("")))
 
     // Update the console with the user input
-    const updateConsole = (type: "enter" | "input" | "intro" = "input", extra?: string) => {
+    const updateConsole = (type: "enter" | "input" | "intro" = "input") => {
       filteredChoices = thisChoices.filter(choice => choice.label.toLowerCase().split(" ").join("").includes(userInput.toLowerCase().split(" ").join("")))
       if (slicePositions[1] > filteredChoices.length) slicePositions = [0, canBeShown]
 
@@ -134,7 +134,7 @@ export function checkbox<T extends string>(options: CheckboxOptions<T>): Promise
       const key = data.toString()
       const exitKey = key === Unicode.ControlC || key === Unicode.Esc
       const enterKey = key === Unicode.Enter
-      const backspaceKey = Unicode.Backspace.includes(key as any)
+      const backspaceKey = Unicode.Backspace.includes(key as (typeof Unicode.Backspace)[number])
       const controlBackspaceKey = key === Unicode.ControlBackspace
       const arrowKey = key === Unicode.UpArrow || key === Unicode.DownArrow || key === Unicode.LeftArrow || key === Unicode.RightArrow
 

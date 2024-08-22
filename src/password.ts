@@ -94,7 +94,7 @@ export function password(options: PasswordOptions): Promise<string> {
       const key = data.toString()
       const exitKey = key === Unicode.ControlC || key === Unicode.Esc
       const enterKey = key === Unicode.Enter
-      const backspaceKey = Unicode.Backspace.includes(key as any)
+      const backspaceKey = Unicode.Backspace.includes(key as (typeof Unicode.Backspace)[number])
       const controlBackspaceKey = key === Unicode.ControlBackspace
       const tabKey = key === Unicode.Tab
       const altSKey = key === Unicode.AltS

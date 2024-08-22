@@ -1,14 +1,14 @@
 // Clears the ANSI escape codes from a string
 export function clearString(str: string): string {
-  const regex = /\x1b\[[0-9;]*m/g
+  const regex = /\\x1b\[[0-9;]*m/g
   return str.replace(regex, "")
 }
 
 // Splits a string into two parts, one with ANSI escape codes and the other without
 export function splitHeight(normal: string, ansi: string, length: number = 10): { normal: string[]; ansi: string[] } {
   const fragmentLength = length
-  let normalResult: string[] = []
-  let ansiResult: string[] = []
+  const normalResult: string[] = []
+  const ansiResult: string[] = []
 
   let normalIndex = 0
   let ansiIndex = 0

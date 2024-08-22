@@ -33,7 +33,7 @@ const username = await coinp.text({
   message: "Whats your username?",
   placeholder: "sercrac07",
   validate(value) {
-    if (!Boolean(value)) return "You must provide a username"
+    if (!value) return "You must provide a username"
   }
 })
 
@@ -48,7 +48,7 @@ const age = await coinp.number({
 const password = await coinp.password({
   message: "What's your account password?",
   validate(value) {
-    if (!Boolean(value)) return "You must provide a password"
+    if (!value) return "You must provide a password"
   }
 })
 

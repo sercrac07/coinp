@@ -97,7 +97,7 @@ export function number(options: NumberOptions): Promise<number> {
       const key = data.toString()
       const exitKey = key === Unicode.ControlC || key === Unicode.Esc
       const enterKey = key === Unicode.Enter
-      const backspaceKey = Unicode.Backspace.includes(key as any)
+      const backspaceKey = Unicode.Backspace.includes(key as (typeof Unicode.Backspace)[number])
       const controlBackspaceKey = key === Unicode.ControlBackspace
       const tabKey = key === Unicode.Tab
       const validKey = "0123456789".includes(key)
