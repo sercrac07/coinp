@@ -1,0 +1,23 @@
+{
+  "name": "@coinp/text",
+  "description": "Collect text input from the user.",
+  "version": "0.0.1",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sercrac07/coinp"
+  },
+  "keywords": [
+    "cli",
+    "input",
+    "text"
+  ],
+  "author": "sercrac07",
+  "license": "MIT"
+}
