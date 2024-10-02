@@ -10,7 +10,7 @@
     "url": "https://github.com/sercrac07/coinp"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "node build.mjs",
     "lint": "eslint **/*.ts",
     "test": "ts-node test/index.ts"
   },
@@ -25,6 +25,7 @@
     "@types/eslint__js": "^8.42.3",
     "@types/node": "^20.12.10",
     "eslint": "^9.9.0",
+    "glob": "^11.0.0",
     "ts-node": "^10.9.2",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5",
