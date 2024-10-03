@@ -18,29 +18,11 @@ export const Unicode = {
   ShowCursor: '\u001B[?25h',
 } as const
 
+// Imported from https://coolsymbol.com/
 export const Symbols = {
-  LineHorizontal: '─',
-  LineVertical: '│',
-  MiddleLine: '├',
-
-  TopLeftCorner: '┌',
-  TopRightCorner: '┐',
-
-  BottomLeftCorner: '└',
-  BottomRightCorner: '┘',
-
-  RightArrow: '▶',
-  TopArrow: '▲',
-  DownArrow: '▼',
-
-  Unselected: '□',
-  Selected: '■',
-
-  Load: ['◓', '◑', '◒', '◐'],
-
-  Unanswered: '◇',
-  Answered: '◆',
-  Error: '▲',
+  Question: '?',
+  Answered: '✓',
+  Input: '→',
 } as const
 
 export const Colors = {
